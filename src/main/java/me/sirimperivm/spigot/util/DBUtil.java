@@ -1,6 +1,7 @@
 package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.util.tables.Kingdoms;
 
 import java.io.File;
 import java.sql.Connection;
@@ -20,8 +21,10 @@ public class DBUtil {
     private int port;
     private String username;
     private String password;
-    private String dbName;
+    public String dbName;
     private String options;
+
+    private Kingdoms kingdoms;
 
     public DBUtil(Main plugin) {
         this.plugin = plugin;
@@ -40,6 +43,7 @@ public class DBUtil {
     private boolean canConnect = false;
 
     public Connection conn;
+    private boolean mysql = false;
 
     private void createConnection() {
         if (dbType.equalsIgnoreCase("mysql")) {
@@ -51,6 +55,7 @@ public class DBUtil {
                 try {
                     conn = DriverManager.getConnection(url, username, password);
                     log.success("[UltimateKingdoms] Plugin connesso al database MySQL con successo.");
+                    mysql = true;
                 } catch (SQLException e) {
                     log.fail("[UltimateKingdoms] Impossibile connettersi al database tento con SQLite.");
                     e.printStackTrace();
@@ -99,7 +104,21 @@ public class DBUtil {
         }
     }
 
+    public boolean isMysql() {
+        return mysql;
+    }
+
     public void setup() {
         createConnection();
+        kingdoms = new Kingdoms(this);
+
+    }
+
+    public Logger getLog() {
+        return log;
+    }
+
+    public Kingdoms getKingdoms() {
+        return kingdoms;
     }
 }

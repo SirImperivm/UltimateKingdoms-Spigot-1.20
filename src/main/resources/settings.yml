@@ -7,3 +7,9 @@ storage:
     password: ""
     dbname: ""
     options: ""
+
+kingdoms:
+  levels:
+    level-0:
+      can-rank-up: true
+      max-members: 6
