@@ -13,3 +13,30 @@ kingdoms:
     level-0:
       can-rank-up: true
       max-members: 6
+
+messages:
+  errors:
+    no-perm:
+      command: "&8[&c!&8] &cNon hai accesso a questo comando."
+      action: "&8[&c!&8] &cNon hai accesso a quest'azione."
+    no-console: "&8[&c!&8] &cQuesto comando è solo per utenti in gioco."
+  kingdoms:
+    creation:
+      error:
+        already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."
+        has-a-kingdom: "&8[&c!&8] &cSei già membro di un regno."
+        name-required: "&8[&c!&8] &cInserisci il nome del regno da creare."
+      success:
+        created: "&8[&a!&8] &aRegno &2{0}&a fondato!."
+        created-broadcast: "&8[&d!!&8] &dL'utente &5{0}&d ha fondato il regno &5{1}&d."
+
+helps:
+  commands:
+    kingdoms:
+      - "&5-/kg create &d<nome> &7- &5Crei un regno."
+
+permissions:
+  commands:
+    kingdoms:
+      main: kingdoms.use
+      create: kingdoms.use

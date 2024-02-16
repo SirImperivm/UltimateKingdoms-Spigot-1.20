@@ -18,6 +18,7 @@ public class Kingdoms {
     private static String dbName;
     private static String tableName;
     private static String data;
+    private static String table;
 
     private static boolean isMysql;
 
@@ -31,16 +32,17 @@ public class Kingdoms {
         dbName = isMysql ? db.dbName : null;
         tableName = "kingdoms";
         data = dbName + "." + tableName;
+        table = isMysql ? data : tableName;
 
         createTable();
     }
 
-    public boolean tableExists() {
+    private boolean tableExists() {
         boolean value = false;
 
         try {
             DatabaseMetaData dmd = conn.getMetaData();
-            ResultSet rs = isMysql ? dmd.getTables(null, null, data, new String[]{"TABLE"}) : dmd.getTables(null, null, tableName, new String[]{"TABLE"});
+            ResultSet rs = dmd.getTables(null, null, table, new String[]{"TABLE"});
             value = rs.next();
         } catch (SQLException e) {
             log.fail("[UltimateKingdoms] Impossibile capire se sia presente la tabella " + tableName + " nel database.");
@@ -52,7 +54,7 @@ public class Kingdoms {
     private void createTable() {
         if (!tableExists()) {
             String query = isMysql ?
-                    "CREATE TABLE " + data + "(" +
+                    "CREATE TABLE " + table + "(" +
                             "`kingdom_id` INT AUTO_INCREMENT NOT NULL, " +
                             "`kingdomName` VARCHAR(70) NOT NULL, " +
                             "`maxMembers` INT NOT NULL, " +
@@ -60,7 +62,7 @@ public class Kingdoms {
                             "`kingdomPoints` INT NULL DEFAULT 0," +
                             " PRIMARY KEY (kingdom_id)" +
                             ")" :
-                    "CREATE TABLE " + tableName + "(" +
+                    "CREATE TABLE " + table + "(" +
                             "`kingdom_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "`kingdomName` VARCHAR(70) NOT NULL," +
                             "`maxMembers` INTEGER NOT NULL," +
@@ -78,13 +80,13 @@ public class Kingdoms {
         }
     }
 
-    public void createKingdom(String kingdomName, int maxMembers) {
-        String query = isMysql ?
-                "INSERT INTO " + data + "(`kingdomName`, `maxMembers`) VALUES ('{name}', {members})".replace("{name}", kingdomName).replace("{members}", String.valueOf(maxMembers)) :
-                "INSERT INTO " + tableName + "(`kingdomName`, `maxMembers`) VALUES ('{name}', {members})".replace("{name}", kingdomName).replace("{members}", String.valueOf(maxMembers));
+    public void insertKingdom(String kingdomName, int maxMembers) {
+        String query = "INSERT INTO " + table + "(`kingdomName`, `maxMembers`) VALUES (?, ?)";
 
         try {
             PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, kingdomName);
+            state.setInt(2, maxMembers);
             state.executeUpdate();
             log.success("[UltimateKingdoms] Il regno {kname} è stato creato con successo!".replace("{kname}", kingdomName));
         } catch (SQLException e) {
@@ -93,9 +95,44 @@ public class Kingdoms {
         }
     }
 
+    public String getKingdomName(int kingdomId) {
+        String kingdomName = null;
+        String query = "SELECT kingdomName FROM " + table + " WHERE kingdom_id=" + kingdomId;
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                kingdomName = rs.getString("kingdomName");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il nome del regno " + kingdomId + "!");
+            e.printStackTrace();
+        }
+        return kingdomName;
+    }
+
+    public int getKingdomId(String kingdomName) {
+        int id = 0;
+        String query = "SELECT kingdom_id FROM " + table + " WHERE kingdomName='" + kingdomName + "'";
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                id = rs.getInt("kingdom_id");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere l'id del regno " + kingdomName + "!");
+            e.printStackTrace();
+        }
+        return id;
+    }
+
     public List<String> kingdomList() {
         List<String> list = new ArrayList<>();
-        String query = "SELECT kingdomName FROM " + tableName;
+        String query = "SELECT kingdomName FROM " + table;
 
         try {
             PreparedStatement state = conn.prepareStatement(query);

@@ -1,7 +1,9 @@
 package me.sirimperivm.spigot;
 
+import me.sirimperivm.spigot.commands.Kingdoms;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
+import me.sirimperivm.spigot.util.Errors;
 import me.sirimperivm.spigot.util.Logger;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
@@ -16,6 +18,7 @@ public final class Main extends JavaPlugin {
     private Logger log;
 
     private ConfUtil config;
+    private Errors errors;
     private DBUtil db;
 
     private int serverVersion;
@@ -26,8 +29,12 @@ public final class Main extends JavaPlugin {
         serverVersion = getBukkitVersion();
         log = new Logger(plugin);
         config = new ConfUtil(plugin);
+        errors = new Errors(plugin);
         db = new DBUtil(plugin);
         db.setup();
+
+        getCommand("kg").setExecutor(new Kingdoms(plugin));
+        getCommand("kg").setTabCompleter(new Kingdoms(plugin));
 
         log.success("[UltimateKingdoms] Plugin attivato correttamente!");
     }
@@ -53,6 +60,10 @@ public final class Main extends JavaPlugin {
 
     public ConfUtil getCM() {
         return config;
+    }
+
+    public Errors getErrors() {
+        return errors;
     }
 
     public DBUtil getDB() {

@@ -2,6 +2,7 @@ package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.util.tables.Kingdoms;
+import me.sirimperivm.spigot.util.tables.Players;
 
 import java.io.File;
 import java.sql.Connection;
@@ -11,11 +12,13 @@ import java.sql.SQLException;
 @SuppressWarnings("all")
 public class DBUtil {
 
+    // UTILITES
     private Main plugin;
     private ConfUtil config;
 
     private Logger log;
 
+    // CREDENTIALS
     private String dbType;
     private String host;
     private int port;
@@ -24,7 +27,9 @@ public class DBUtil {
     public String dbName;
     private String options;
 
+    // TABLES
     private Kingdoms kingdoms;
+    private Players players;
 
     public DBUtil(Main plugin) {
         this.plugin = plugin;
@@ -111,7 +116,7 @@ public class DBUtil {
     public void setup() {
         createConnection();
         kingdoms = new Kingdoms(this);
-
+        players = new Players(this);
     }
 
     public Logger getLog() {
@@ -120,5 +125,9 @@ public class DBUtil {
 
     public Kingdoms getKingdoms() {
         return kingdoms;
+    }
+
+    public Players getPlayers() {
+        return players;
     }
 }
