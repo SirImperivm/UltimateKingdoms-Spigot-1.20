@@ -1,11 +1,11 @@
-package me.sirimperivm.spigot.util.rgbcolors;
+package me.sirimperivm.spigot.util.colors;
 
 import com.google.common.collect.ImmutableMap;
 import me.sirimperivm.spigot.Main;
-import me.sirimperivm.spigot.util.rgbcolors.patterns.Gradient;
-import me.sirimperivm.spigot.util.rgbcolors.patterns.Pattern;
-import me.sirimperivm.spigot.util.rgbcolors.patterns.Rainbow;
-import me.sirimperivm.spigot.util.rgbcolors.patterns.Solid;
+import me.sirimperivm.spigot.util.colors.patterns.Gradient;
+import me.sirimperivm.spigot.util.colors.patterns.Pattern;
+import me.sirimperivm.spigot.util.colors.patterns.Rainbow;
+import me.sirimperivm.spigot.util.colors.patterns.Solid;
 import net.md_5.bungee.api.ChatColor;
 
 import java.awt.*;

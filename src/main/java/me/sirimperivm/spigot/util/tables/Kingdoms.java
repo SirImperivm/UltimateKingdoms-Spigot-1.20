@@ -1,7 +1,9 @@
 package me.sirimperivm.spigot.util.tables;
 
 import me.sirimperivm.spigot.util.DBUtil;
-import me.sirimperivm.spigot.util.Logger;
+import me.sirimperivm.spigot.util.other.Logger;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -95,6 +97,18 @@ public class Kingdoms {
         }
     }
 
+    public void deleteKingdom(String kname) {
+        String query = "DELETE FROM " + table + " WHERE kingdomName='" + kname + "'";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile cancellare il regno: " + kname + "!");
+            e.printStackTrace();
+        }
+    }
+
     public String getKingdomName(int kingdomId) {
         String kingdomName = null;
         String query = "SELECT kingdomName FROM " + table + " WHERE kingdom_id=" + kingdomId;
@@ -142,6 +156,32 @@ public class Kingdoms {
             }
         } catch (SQLException e) {
             log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei reami creati.");
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<Player> kingdomPlayersList(int kingdomId) {
+        List<Player> list = new ArrayList<>();
+        String query =
+            "SELECT player_name " +
+            "FROM players " +
+            "WHERE players.kingdom_id=?"
+        ;
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                String playerName = rs.getString("player_name");
+                Player player = Bukkit.getPlayerExact(playerName);
+                if (player != null) {
+                    list.add(player);
+                }
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei player per il regno " + getKingdomName(kingdomId) + "!");
             e.printStackTrace();
         }
         return list;

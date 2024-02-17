@@ -1,6 +1,4 @@
-package me.sirimperivm.spigot.util;
-
-import me.sirimperivm.spigot.util.rgbcolors.RGB;
+package me.sirimperivm.spigot.util.colors;
 
 @SuppressWarnings("all")
 public class Colors {

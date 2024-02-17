@@ -1,6 +1,7 @@
-package me.sirimperivm.spigot.util;
+package me.sirimperivm.spigot.util.other;
 
 import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.util.colors.Colors;
 
 @SuppressWarnings("all")
 public class Logger {

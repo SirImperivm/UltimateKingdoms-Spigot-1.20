@@ -1,6 +1,6 @@
-package me.sirimperivm.spigot.util.rgbcolors.patterns;
+package me.sirimperivm.spigot.util.colors.patterns;
 
-import me.sirimperivm.spigot.util.rgbcolors.RGB;
+import me.sirimperivm.spigot.util.colors.RGB;
 
 import java.awt.*;
 import java.util.regex.Matcher;

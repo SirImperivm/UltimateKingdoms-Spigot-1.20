@@ -3,8 +3,9 @@ package me.sirimperivm.spigot;
 import me.sirimperivm.spigot.commands.Kingdoms;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
-import me.sirimperivm.spigot.util.Errors;
-import me.sirimperivm.spigot.util.Logger;
+import me.sirimperivm.spigot.util.ModUtil;
+import me.sirimperivm.spigot.util.other.Errors;
+import me.sirimperivm.spigot.util.other.Logger;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -20,6 +21,7 @@ public final class Main extends JavaPlugin {
     private ConfUtil config;
     private Errors errors;
     private DBUtil db;
+    private ModUtil mod;
 
     private int serverVersion;
 
@@ -32,6 +34,9 @@ public final class Main extends JavaPlugin {
         errors = new Errors(plugin);
         db = new DBUtil(plugin);
         db.setup();
+        mod = new ModUtil(plugin);
+        mod.setupKingdomHash();
+        mod.setupRoles();
 
         getCommand("kg").setExecutor(new Kingdoms(plugin));
         getCommand("kg").setTabCompleter(new Kingdoms(plugin));
@@ -68,6 +73,10 @@ public final class Main extends JavaPlugin {
 
     public DBUtil getDB() {
         return db;
+    }
+
+    public ModUtil getMod() {
+        return mod;
     }
 
     private int getBukkitVersion() {

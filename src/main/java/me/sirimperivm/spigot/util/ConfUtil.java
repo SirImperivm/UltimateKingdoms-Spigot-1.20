@@ -1,6 +1,8 @@
 package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.util.colors.Colors;
+import me.sirimperivm.spigot.util.other.Logger;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

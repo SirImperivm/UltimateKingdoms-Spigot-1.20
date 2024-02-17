@@ -1,6 +1,7 @@
-package me.sirimperivm.spigot.util;
+package me.sirimperivm.spigot.util.other;
 
 import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.util.ConfUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 

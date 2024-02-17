@@ -1,8 +1,8 @@
 package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
-import me.sirimperivm.spigot.util.tables.Kingdoms;
-import me.sirimperivm.spigot.util.tables.Players;
+import me.sirimperivm.spigot.util.other.Logger;
+import me.sirimperivm.spigot.util.tables.*;
 
 import java.io.File;
 import java.sql.Connection;
@@ -29,7 +29,10 @@ public class DBUtil {
 
     // TABLES
     private Kingdoms kingdoms;
+    private Roles roles;
     private Players players;
+    private Permissions permissions;
+    private PermissionsRoles permissionsRoles;
 
     public DBUtil(Main plugin) {
         this.plugin = plugin;
@@ -116,7 +119,14 @@ public class DBUtil {
     public void setup() {
         createConnection();
         kingdoms = new Kingdoms(this);
+        roles = new Roles(this);
         players = new Players(this);
+        permissions = new Permissions(this);
+        permissionsRoles = new PermissionsRoles(this);
+    }
+
+    public ConfUtil getConfig() {
+        return config;
     }
 
     public Logger getLog() {
@@ -127,7 +137,19 @@ public class DBUtil {
         return kingdoms;
     }
 
+    public Roles getRoles() {
+        return roles;
+    }
+
     public Players getPlayers() {
         return players;
+    }
+
+    public Permissions getPermissions() {
+        return permissions;
+    }
+
+    public PermissionsRoles getPermissionsRoles() {
+        return permissionsRoles;
     }
 }

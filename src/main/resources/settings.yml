@@ -3,9 +3,9 @@ storage:
   credentials:
     host: "127.0.0.1"
     port: 3306
-    username: ""
-    password: ""
-    dbname: ""
+    username: "ultimatekingdoms"
+    password: "ultimatekingdoms"
+    dbname: "ultimatekingdoms"
     options: ""
 
 kingdoms:
@@ -13,6 +13,71 @@ kingdoms:
     level-0:
       can-rank-up: true
       max-members: 6
+  roles:
+    leader:
+      id: 1
+      weight: 100
+      default-permissions:
+        use-home: true
+        set-home: true
+        break-blocks: true
+        place-blocks: true
+        use-containers: true
+        open-doors: true
+        invite-players: true
+        expel-players: true
+        use-warps: true
+        set-warps: true
+        expand-territory: true
+        disband: true
+    officer:
+      id: 2
+      weight: 75
+      default-permissions:
+        use-home: true
+        set-home: true
+        break-blocks: true
+        place-blocks: true
+        use-containers: true
+        open-doors: true
+        invite-players: true
+        expel-players: false
+        use-warps: true
+        set-warps: true
+        expand-territory: true
+        disband: false
+    moderator:
+      id: 3
+      weight: 50
+      default-permissions:
+        use-home: true
+        set-home: false
+        break-blocks: true
+        place-blocks: true
+        use-containers: false
+        open-doors: true
+        invite-players: false
+        expel-players: false
+        use-warps: true
+        set-warps: false
+        expand-territory: false
+        disband: false
+    recruit:
+      id: 4
+      weight: 25
+      default-permissions:
+        use-home: true
+        set-home: false
+        break-blocks: false
+        place-blocks: false
+        use-containers: false
+        open-doors: true
+        invite-players: false
+        expel-players: false
+        use-warps: false
+        set-warps: false
+        expand-territory: false
+        disband: false
 
 messages:
   errors:
@@ -21,22 +86,64 @@ messages:
       action: "&8[&c!&8] &cNon hai accesso a quest'azione."
     no-console: "&8[&c!&8] &cQuesto comando è solo per utenti in gioco."
   kingdoms:
+    general:
+      error:
+        user-offline: "&8[&c!&8] &cL'utente scelto è offline o non esiste."
     creation:
       error:
         already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."
         has-a-kingdom: "&8[&c!&8] &cSei già membro di un regno."
         name-required: "&8[&c!&8] &cInserisci il nome del regno da creare."
       success:
-        created: "&8[&a!&8] &aRegno &2{0}&a fondato!."
-        created-broadcast: "&8[&d!!&8] &dL'utente &5{0}&d ha fondato il regno &5{1}&d."
+        created: "&8[&a!&8] &aRegno &2{0}&a fondato!"
+        created-broadcast: "&8[&5!!&8] &dL'utente &5{0}&d ha fondato il regno &5{1}&d."
+    disband:
+      error:
+        not-have: "&8[&c!&8] &cNon hai nessun regno da eliminare."
+        hasnt-permission: "&8[&c!&8] &cNon puoi eliminare il tuo regno."
+      success:
+        disbanded: "&8[&a!&8] &aRegno &2{0}&a eliminato!"
+        disbanded-broadcast: "&8[&5!!&8] &dL'utente &5{0}&d ha eliminato il regno &5{1}&d."
+    invites:
+      success:
+        started: "&8[&a!&8] &aUtente invitato con succcesso, ha 30 secondi per accettare l'invito."
+      info:
+        started: "&8[&e!&8] &eSei stato invitato ad entrare nel regno &6{0}&e da &6{1}&e. Hai 30 secondi per accettare con &6/kg accept&e."
+        expired: "&8[&e!&8] &eInvito scaduto."
+      error:
+        already-have-one: "&8[&c!&8] &cL'utente che vuoi invitare fa già parte di un altro regno."
+        never-invited: "&8[&c!&8] &cNon hai nessuna richiesta di invito in regni attiva, probabilmente è scaduto l'invito."
+    joined:
+      success: "&8[&a!&8] &aSei entrato a far parte del regno &2{0}&a."
+      info: "&8[&e!&8] &eL'utente &6{0} &efa ora parte del tuo regno."
+    expel:
+      success:
+        kicked: "&8[&a!&8] &aHai espulso con successo &2{0}&a dal tuo regno."
+      info:
+        kicked-you: "&8[&e!&8] &eSei stato espulso dal regno &6{0}&e."
+        kicked-broadcast: "&8[&e!&8] &eL'utente &6{0} &eè stato espulso dal tuo regno."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon fai parte di nessun regno."
+        not-in-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte di nessun regno."
+        not-in-your-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte del tuo regno."
+        hasnt-permission: "&8[&c!&8] &cNel puoi espellere membri del tuo regno."
+        target-is-greather-than-you: "&8[&c!&8] &cL'utente scelto ha un ruolo uguale o superiore al tuo."
 
 helps:
   commands:
     kingdoms:
+      - "&5-/kg accept &7- &5Accetti l'invito in un regno."
+      - "&5-/kg disband &7- &5Elimini il tuo regno."
       - "&5-/kg create &d<nome> &7- &5Crei un regno."
+      - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
+      - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
 
 permissions:
   commands:
     kingdoms:
       main: kingdoms.use
       create: kingdoms.use
+      disband: kingdoms.use
+      invite: kingdoms.use
+      accept: kingdoms.use
+      expel: kingdoms.use
