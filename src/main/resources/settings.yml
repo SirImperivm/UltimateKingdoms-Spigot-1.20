@@ -13,6 +13,7 @@ kingdoms:
     level-0:
       can-rank-up: true
       max-members: 6
+      max-claimable-chunks: 12
   roles:
     leader:
       id: 1
@@ -28,6 +29,8 @@ kingdoms:
         expel-players: true
         use-warps: true
         set-warps: true
+        manage-players: true
+        manage-roles: true
         expand-territory: true
         disband: true
     officer:
@@ -44,6 +47,8 @@ kingdoms:
         expel-players: false
         use-warps: true
         set-warps: true
+        manage-players: true
+        manage-roles: false
         expand-territory: true
         disband: false
     moderator:
@@ -60,6 +65,8 @@ kingdoms:
         expel-players: false
         use-warps: true
         set-warps: false
+        manage-players: false
+        manage-roles: false
         expand-territory: false
         disband: false
     recruit:
@@ -76,6 +83,8 @@ kingdoms:
         expel-players: false
         use-warps: false
         set-warps: false
+        manage-players: false
+        manage-roles: false
         expand-territory: false
         disband: false
 
@@ -128,15 +137,40 @@ messages:
         not-in-your-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte del tuo regno."
         hasnt-permission: "&8[&c!&8] &cNel puoi espellere membri del tuo regno."
         target-is-greather-than-you: "&8[&c!&8] &cL'utente scelto ha un ruolo uguale o superiore al tuo."
+    change-role:
+      success:
+        role-updated: "&8[&a!&8] &aRuolo impostato con successo."
+      info:
+        role-updated-you: "&8[&e!&8] &eIl tuo ruolo è stato impostato su &6{0}&e."
+        role-updated-broadcast: "&8[&e!&8] &eIl ruolo dell'utente &6{0} &eè stato impostato su &6{1}&e."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon fai parte di nessun regno."
+        target-not-in-a-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte di nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon puoi modificare i ruoli dei player nel tuo regno."
+        role-not-exist: "&8[&c!&8] &cIl ruolo scelto non esiste."
+        not-in-your-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte del tuo regno."
+        target-player-higher-than-you: "&8[&c!&8] &cNon puoi cambiare il ruolo agli utenti con grado superiore o uguale al tuo."
+        target-role-higher-than-your: "&8[&c!&8] &cNon puoi impostare o togliere un ruolo superiore o uguale al tuo ad un altro membro del tuo regno."
+    claims:
+      success:
+        claimed: "&8[&a!&8] &aChunk inserito nel territorio del tuo regno."
+      info:
+        territory-expanded: "&8[&e!&8] &eTerritorio del regno espanso. Mondo: &6{0}&e, x: &6{1}&e, z: &6{2}&e, X: &6{3}&e, Z: &6{4}&e."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon fai parte di nessun regno."
+        hasnt-permission: "&8[&c!&8] &cIl tuo regno non permette che tu ottenga territori."
+        max-claims-reached: "&8[&c!&8] &cMassimo di claim raggiunto, se possibile aumenta l'oro del tuo regno per farlo salire di livello."
 
 helps:
   commands:
     kingdoms:
       - "&5-/kg accept &7- &5Accetti l'invito in un regno."
       - "&5-/kg disband &7- &5Elimini il tuo regno."
+      - "&5-/kg claim &7- &5Ottieni un chunk 16x16 di territorio per il tuo regno."
       - "&5-/kg create &d<nome> &7- &5Crei un regno."
       - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
       - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
+      - "&5-/kg changerole &d<nomeplayer> <nomeruolo> &7- &5Imposti un ruolo ad un utente del tuo regno."
 
 permissions:
   commands:
@@ -147,3 +181,5 @@ permissions:
       invite: kingdoms.use
       accept: kingdoms.use
       expel: kingdoms.use
+      change-role: kingdoms.use
+      claim: kingdoms.use

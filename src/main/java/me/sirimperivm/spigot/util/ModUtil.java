@@ -1,6 +1,7 @@
 package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.entities.Chunk;
 import me.sirimperivm.spigot.entities.Kingdom;
 import me.sirimperivm.spigot.util.other.Logger;
 import org.bukkit.Bukkit;
@@ -177,6 +178,66 @@ public class ModUtil {
         }
     }
 
+    public void changeRole(Player officer, Player target, String roleName) {
+        if (db.getPlayers().existsPlayerData(officer)) {
+            if (hasPermission(officer, "manage-players")) {
+                if (db.getPlayers().existsPlayerData(target)) {
+                    if (db.getRoles().existsRoleData(roleName)) {
+                        Kingdom officerKingdom = getPlayerKingdom(officer);
+                        Kingdom targetKingdom = getPlayerKingdom(target);
+
+                        String officerKingdomName = officerKingdom.getKingdomName();
+                        String targetKingdomName = targetKingdom.getKingdomName();
+
+                        if (officerKingdomName.equals(targetKingdomName)) {
+                            int officerRole = db.getPlayers().getKingdomRole(officer);
+                            int targetRole = db.getPlayers().getKingdomRole(target);
+
+                            int officerWeight = db.getRoles().getRoleWeight(officerRole);
+                            int targetWeight = db.getRoles().getRoleWeight(targetRole);
+
+                            if (officerWeight > targetWeight) {
+                                int targetRoleId = db.getRoles().getRoleId(roleName);
+                                int targetRoleWeight = db.getRoles().getRoleWeight(targetRoleId);
+
+                                if (officerWeight > targetRoleWeight) {
+                                    int kingdomId = db.getKingdoms().getKingdomId(officerKingdomName);
+                                    db.getPlayers().updateRole(target, targetRoleId);
+
+                                    target.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.info.role-updated-you")
+                                            .replace("{0}", roleName));
+                                    officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.success.role-updated"));
+
+                                    List<Player> kingdomPlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+
+                                    kingdomPlayers.forEach(player -> {
+                                        player.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.info.role-updated-broadcast")
+                                                .replace("{0}", target.getName())
+                                                .replace("{1}", roleName));
+                                    });
+                                } else {
+                                    officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.target-role-higher-than-your"));
+                                }
+                            } else {
+                                officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.target-player-higher-than-you"));
+                            }
+                        } else {
+                            officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.not-in-your-kingdom"));
+                        }
+                    } else {
+                        officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.role-not-exist"));
+                    }
+                } else {
+                    officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.target-not-in-a-kindom"));
+                }
+            } else {
+                officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.hasnt-permission"));
+            }
+        } else {
+            officer.sendMessage(config.getTranslatedString("messages.kingdoms.change-role.error.not-in-a-kindom"));
+        }
+    }
+
     public void disbandPlayerKingdom(Player player) {
         String playerName = player.getName();
         if (kingdomHash.containsKey(playerName)) {
@@ -184,9 +245,12 @@ public class ModUtil {
                 Kingdom playerKingdom = getPlayerKingdom(player);
 
                 String kingdomName = playerKingdom.getKingdomName();
+                int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
                 db.getKingdoms().deleteKingdom(kingdomName);
                 if (!db.isMysql()) {
-                    db.getPlayers().dropPlayer(player);
+                    db.getPlayers().truncateTable(kingdomId);
+                    db.getPermissionsRoles().truncateTable(kingdomId);
+                    db.getChunks().truncateTable(kingdomId);
                 }
 
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.success.disbanded")
@@ -202,6 +266,31 @@ public class ModUtil {
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.not-have"));
+        }
+    }
+
+    public void claimChunk(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "expand-territory")) {
+                Kingdom playerKingdom = getPlayerKingdom(player);
+                String kingdomName = playerKingdom.getKingdomName();
+
+                int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
+                int kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                int maxClaimableChunks = config.getSettings().getInt("kingdoms.levels.level-" + kingdomLevel+ ".max-claimable-chunks");
+                int claimedChunks = db.getChunks().getClaimedChunks(kingdomId);
+
+                if (claimedChunks < maxClaimableChunks) {
+                    Chunk chunk = new Chunk(plugin);
+                    chunk.obtainChunk(player);
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-in-a-kingdom"));
         }
     }
 

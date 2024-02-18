@@ -77,6 +77,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.disbandPlayerKingdom(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("claim")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.claim"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.claimChunk(p);
+                            }
+                        }
                     } else {
                         getUsage(s);
                     }
@@ -138,6 +149,28 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                     } else {
                         getUsage(s);
                     }
+                } else if (a.length == 3) {
+                    if (a[0].equalsIgnoreCase("changerole")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                Player t = Bukkit.getPlayerExact(a[1]);
+
+                                if (t == null || !Bukkit.getOnlinePlayers().contains(t)) {
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.user-offline"));
+                                } else {
+                                    String roleName = a[2];
+                                    mod.changeRole(p, t, roleName);
+                                }
+                            }
+                        }
+                    } else {
+                        getUsage(s);
+                    }
                 } else {
                     getUsage(s);
                 }
@@ -192,6 +225,22 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-players")) {
+                            toReturn.add("changerole");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.claim"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "expand-territory")) {
+                            toReturn.add("claim");
+                        }
+                    }
+                }
                 return toReturn;
             } else if (a.length == 2) {
                 List<String> toReturn = new ArrayList<>();
@@ -227,6 +276,34 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 int kingdomId = db.getPlayers().getKingdomId(player);
                                 for (Player online : db.getKingdoms().kingdomPlayersList(kingdomId)) {
                                     toReturn.add(online.getName());
+                                }
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-players")) {
+                            if (a[0].equalsIgnoreCase("changerole")) {
+                                int kingdomId = db.getPlayers().getKingdomId(player);
+                                for (Player online : db.getKingdoms().kingdomPlayersList(kingdomId)) {
+                                    toReturn.add(online.getName());
+                                }
+                            }
+                        }
+                    }
+                }
+                return toReturn;
+            } else if (a.length == 3) {
+                List<String> toReturn = new ArrayList<>();
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-players")) {
+                            if (a[0].equalsIgnoreCase("changerole")) {
+                                for (String rolename : config.getSettings().getConfigurationSection("kingdoms.roles").getKeys(false)) {
+                                    toReturn.add(rolename);
                                 }
                             }
                         }

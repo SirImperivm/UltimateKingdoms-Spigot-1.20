@@ -101,6 +101,21 @@ public class Players {
         }
     }
 
+    public void updateRole(Player player, int kingdomRole) {
+        String playerName = player.getName();
+
+        String query = "UPDATE " + table + " SET kingdom_role=? WHERE player_name=?";
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomRole);
+            state.setString(2, playerName);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile aggiornare il ruolo dell'utente " + playerName + " su " + kingdomRole + "!");
+            e.printStackTrace();
+        }
+    }
+
     public void dropPlayer(Player player) {
         String playerName = player.getName();
         String playerUuid = player.getUniqueId().toString().replace("-", "");
@@ -112,6 +127,19 @@ public class Players {
             state.executeUpdate();
         } catch (SQLException e) {
             log.fail("[UltimateKingdoms] Impossibile rimuovere dati riguardanti l'utente " + playerName + "!");
+            e.printStackTrace();
+        }
+    }
+
+    public void truncateTable(int kingdomId) {
+        String query = "DELETE FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile cancellare tutti i dati del regno: " + kingdomId + "!");
             e.printStackTrace();
         }
     }

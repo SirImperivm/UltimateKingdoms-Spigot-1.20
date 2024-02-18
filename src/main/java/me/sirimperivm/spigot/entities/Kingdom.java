@@ -15,7 +15,7 @@ import java.util.List;
 public class Kingdom {
 
     private Main plugin;
-    private Logger log, modlogger;
+    private Logger log;
 
     private ConfUtil config;
     private DBUtil db;

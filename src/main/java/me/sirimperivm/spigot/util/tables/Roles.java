@@ -4,6 +4,7 @@ import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.other.Logger;
 
 import java.sql.*;
+import java.util.HashMap;
 
 @SuppressWarnings("all")
 public class Roles {
@@ -88,6 +89,25 @@ public class Roles {
         }
     }
 
+    public int getRoleId(String roleName) {
+        int roleId = 0;
+        String query = "SELECT kingdom_role FROM " + table + " WHERE role_name=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, roleName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                roleId = rs.getInt("kingdom_role");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il peso per il gruppo " + roleName + "!");
+            e.printStackTrace();
+        }
+        return roleId;
+    }
+
     public int getRoleWeight(int roleId) {
         int weight = 0;
         String query = "SELECT role_weight FROM " + table + " WHERE kingdom_role=?";
@@ -123,5 +143,22 @@ public class Roles {
             e.printStackTrace();
         }
         return value;
+    }
+
+    public HashMap<Integer, Integer> roleIdsToWeight() {
+        HashMap<Integer, Integer> hash = new HashMap<>();
+        String query = "SELECT kingdom_role,role_weight FROM " + table;
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                hash.put(rs.getInt("kingdom_role"), rs.getInt("role_weight"));
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la rete di ruoli e pesi.");
+            e.printStackTrace();
+        }
+        return hash;
     }
 }

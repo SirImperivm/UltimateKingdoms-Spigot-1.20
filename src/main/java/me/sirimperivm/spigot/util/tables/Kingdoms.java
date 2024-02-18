@@ -144,6 +144,44 @@ public class Kingdoms {
         return id;
     }
 
+    public int getKingdomLevel(String kingdomName) {
+        int level = 0;
+        String query = "SELECT kingdomLevel FROM " + table + " WHERE kingdomName=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, kingdomName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                level = rs.getInt("kingdomLevel");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il livello del regno " + kingdomName + "!");
+            e.printStackTrace();
+        }
+        return level;
+    }
+
+    public int getKingdomLevel(int kingdomId) {
+        int level = 0;
+        String query = "SELECT kingdomLevel FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                level = rs.getInt("kingdomLevel");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il livello del regno " + getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return level;
+    }
+
     public List<String> kingdomList() {
         List<String> list = new ArrayList<>();
         String query = "SELECT kingdomName FROM " + table;

@@ -1,6 +1,7 @@
 package me.sirimperivm.spigot;
 
 import me.sirimperivm.spigot.commands.Kingdoms;
+import me.sirimperivm.spigot.entities.Chunk;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
@@ -37,6 +38,7 @@ public final class Main extends JavaPlugin {
         mod = new ModUtil(plugin);
         mod.setupKingdomHash();
         mod.setupRoles();
+        Chunk chunks = new Chunk(plugin);
 
         getCommand("kg").setExecutor(new Kingdoms(plugin));
         getCommand("kg").setTabCompleter(new Kingdoms(plugin));

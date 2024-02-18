@@ -33,6 +33,7 @@ public class DBUtil {
     private Players players;
     private Permissions permissions;
     private PermissionsRoles permissionsRoles;
+    private Chunks chunks;
 
     public DBUtil(Main plugin) {
         this.plugin = plugin;
@@ -123,6 +124,7 @@ public class DBUtil {
         players = new Players(this);
         permissions = new Permissions(this);
         permissionsRoles = new PermissionsRoles(this);
+        chunks = new Chunks(this);
     }
 
     public ConfUtil getConfig() {
@@ -151,5 +153,9 @@ public class DBUtil {
 
     public PermissionsRoles getPermissionsRoles() {
         return permissionsRoles;
+    }
+
+    public Chunks getChunks() {
+        return chunks;
     }
 }

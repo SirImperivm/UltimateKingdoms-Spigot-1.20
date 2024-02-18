@@ -94,4 +94,17 @@ public class PermissionsRoles {
         }
     }
 
+    public void truncateTable(int kingdomId) {
+        String query = "DELETE FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile cancellare tutti i dati del regno: " + kingdomId + "!");
+            e.printStackTrace();
+        }
+    }
+
 }
