@@ -45,7 +45,7 @@ public class Permissions {
         permissionsList = new ArrayList<>();
 
         for (String key : config.getSettings().getConfigurationSection("kingdoms.roles.leader.default-permissions").getKeys(false)) {
-            if (!permissionsList.contains(key)) {
+            if (!permissionsList.contains(key) && !existPermission(key)) {
                 permissionsList.add(key);
             }
         }
@@ -71,12 +71,12 @@ public class Permissions {
             String query = isMysql ?
                     "CREATE TABLE " + table + "(" +
                             "`perm_id` INT NOT NULL," +
-                            "`perm_name` VARCHAR(40) NOT NULL," +
+                            "`perm_name` VARCHAR(40) NOT NULL UNIQUE," +
                             "PRIMARY KEY (perm_id)" +
                             ")" :
                     "CREATE TABLE " + table + "(" +
                             "`perm_id` INTEGER PRIMARY KEY," +
-                            "`perm_name` VARCHAR(40) NOT NULL" +
+                            "`perm_name` VARCHAR(40) NOT NULL UNIQUE" +
                             ")";
             try {
                 PreparedStatement state = conn.prepareStatement(query);
@@ -101,6 +101,12 @@ public class Permissions {
         }
     }
 
+    public void setupPermissionsList() {
+        for (String permName : permissionsList) {
+            insertPermission(permName);
+        }
+    }
+
     public int getPermId(String permname) {
         int id = 0;
         String query = "SELECT perm_id FROM " + table + " WHERE perm_name='" + permname + "'";
@@ -119,10 +125,23 @@ public class Permissions {
         return id;
     }
 
-    public void setupPermissionsList() {
-        for (String permName : permissionsList) {
-            insertPermission(permName);
+    private boolean existPermission(String permname) {
+        boolean value = false;
+        String query = "SELECT * FROM " + table + " WHERE perm_name=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, permname);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                value = true;
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile capire se nella tabella sia presente il permesso: " + permname + "!");
+            e.printStackTrace();
         }
+        return value;
     }
 
     public List<String> getPermissionsList() {

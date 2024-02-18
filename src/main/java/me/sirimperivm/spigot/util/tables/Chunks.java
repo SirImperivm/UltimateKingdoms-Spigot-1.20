@@ -1,5 +1,6 @@
 package me.sirimperivm.spigot.util.tables;
 
+import me.sirimperivm.spigot.entities.Chunk;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.other.Logger;
 
@@ -32,6 +33,8 @@ public class Chunks {
         tableName = "chunks";
         data = dbName + "." + tableName;
         table = isMysql ? data : tableName;
+
+        createTable();
     }
 
     private boolean tableExists() {
@@ -54,7 +57,7 @@ public class Chunks {
                     "CREATE TABLE " + table + "(" +
                             "`chunk_id` INT AUTO_INCREMENT NOT NULL," +
                             "`world_name` VARCHAR(125) NOT NULL,)" +
-                            "`min_x` INT NOT NULL,)" +
+                            "`min_x` INT NOT NULL," +
                             "`max_x` INT NOT NULL," +
                             "`min_y` INT NOT NULL," +
                             "`max_y` INT NOT NULL," +
@@ -67,7 +70,7 @@ public class Chunks {
                     "CREATE TABLE " + table + "(" +
                             "`chunk_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "`world_name` VARCHAR(125) NOT NULL," +
-                            "`min_x` INTEGER NOT NULL,)" +
+                            "`min_x` INTEGER NOT NULL," +
                             "`max_x` INTEGER NOT NULL," +
                             "`min_y` INTEGER NOT NULL," +
                             "`max_y` INTEGER NOT NULL," +
@@ -105,6 +108,34 @@ public class Chunks {
         }
     }
 
+    public void dropChunk(Chunk chunk) {
+        String world = chunk.getWorld().getName();
+        int minX = chunk.getMinX();
+        int maxX = chunk.getMaxX();
+        int minY = chunk.getMinY();
+        int maxY = chunk.getMaxY();
+        int minZ = chunk.getMinZ();
+        int maxZ = chunk.getMaxZ();
+        int kingdomId = chunk.getKingdomId();
+        String query = "DELETE FROM " + table + " WHERE world_name=? AND min_X=? AND max_x=? AND min_y=? AND max_y=? AND min_z=? AND max_z=? AND kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, world);
+            state.setInt(2, minX);
+            state.setInt(3, maxX);
+            state.setInt(4, minY);
+            state.setInt(5, maxY);
+            state.setInt(6, minZ);
+            state.setInt(7, maxZ);
+            state.setInt(8, kingdomId);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile cancellare il chunk: " + world + " - " + minX + " - " + minY + " - " + minZ + "!");
+            e.printStackTrace();
+        }
+    }
+
     public void truncateTable(int kingdomId) {
         String query = "DELETE FROM " + table + " WHERE kingdom_id=?";
 
@@ -135,5 +166,40 @@ public class Chunks {
             e.printStackTrace();
         }
         return chunks;
+    }
+
+    public boolean existChunk(Chunk chunk) {
+        boolean value = false;
+        String world = chunk.getWorld().getName();
+        int minX = chunk.getMinX();
+        int maxX = chunk.getMaxX();
+        int minY = chunk.getMinY();
+        int maxY = chunk.getMaxY();
+        int minZ = chunk.getMinZ();
+        int maxZ = chunk.getMaxZ();
+        int kingdomId = chunk.getKingdomId();
+        String query = "SELECT chunk_id FROM " + table + " WHERE world_name=? AND min_X=? AND max_x=? AND min_y=? AND max_y=? AND min_z=? AND max_z=? AND kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, world);
+            state.setInt(2, minX);
+            state.setInt(3, maxX);
+            state.setInt(4, minY);
+            state.setInt(5, maxY);
+            state.setInt(6, minZ);
+            state.setInt(7, maxZ);
+            state.setInt(8, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                value = true;
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile capire se sia presente il chunk: " + world + " - " + minX + " - " + minY + " - " + minZ + "!");
+            e.printStackTrace();
+        }
+
+        return value;
     }
 }

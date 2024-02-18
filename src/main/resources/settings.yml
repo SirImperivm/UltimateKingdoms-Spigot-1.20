@@ -154,12 +154,15 @@ messages:
     claims:
       success:
         claimed: "&8[&a!&8] &aChunk inserito nel territorio del tuo regno."
+        unclaimed: "&8[&a!&8] &aChunk rimosso dal territorio del tuo regno."
       info:
         territory-expanded: "&8[&e!&8] &eTerritorio del regno espanso. Mondo: &6{0}&e, x: &6{1}&e, z: &6{2}&e, X: &6{3}&e, Z: &6{4}&e."
+        territory-released: "&8[&e!&8] &eTerritorio del regno rilasciato. Mondo: &6{0}&e, x: &6{1}&e, z: &6{2}&e, X: &6{3}&e, Z: &6{4}&e."
       error:
         not-in-a-kingdom: "&8[&c!&8] &cNon fai parte di nessun regno."
         hasnt-permission: "&8[&c!&8] &cIl tuo regno non permette che tu ottenga territori."
         max-claims-reached: "&8[&c!&8] &cMassimo di claim raggiunto, se possibile aumenta l'oro del tuo regno per farlo salire di livello."
+        claim-not-found: "&8[&c!&8] &cClaim non trovato."
 
 helps:
   commands:
@@ -167,6 +170,7 @@ helps:
       - "&5-/kg accept &7- &5Accetti l'invito in un regno."
       - "&5-/kg disband &7- &5Elimini il tuo regno."
       - "&5-/kg claim &7- &5Ottieni un chunk 16x16 di territorio per il tuo regno."
+      - "&5-/kg unclaim &7- &5Rilasci un chunk 16x16 di territorio del tuo regno."
       - "&5-/kg create &d<nome> &7- &5Crei un regno."
       - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
       - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
@@ -183,3 +187,4 @@ permissions:
       expel: kingdoms.use
       change-role: kingdoms.use
       claim: kingdoms.use
+      unclaim: kingdoms.use

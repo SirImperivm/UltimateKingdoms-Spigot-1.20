@@ -5,9 +5,9 @@ import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
 import me.sirimperivm.spigot.util.other.Logger;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("all")
@@ -20,28 +20,25 @@ public class Chunk {
     private DBUtil db;
     private ModUtil mod;
 
-    private List<Chunk> chunksList;
+    private Player player;
+    private World world;
+    private String playerName, worldName;
+    private int playerX, playerZ, minX, maxX, minY, maxY, minZ, maxZ, kingdomId;
+    private Kingdom playerKingdom;
 
-    public Chunk(Main plugin) {
+    public Chunk(Main plugin, Player player) {
         this.plugin = plugin;
+        this.player = player;
+
         log = plugin.getLog();
-        chunksList = new ArrayList<>();
 
         config = plugin.getCM();
         db = plugin.getDB();
         mod = plugin.getMod();
-    }
 
-    public void obtainChunk(Player player) {
-        String playerName = player.getName();
-
-        String world;
-        int playerX, playerZ;
-        int minX, maxX, minY, maxY, minZ, maxZ;
-        Kingdom playerKingdom;
-        int kingdomId;
-
-        world = player.getLocation().getWorld().getName();
+        world = player.getWorld();
+        worldName = world.getName();
+        playerName = player.getName();
         playerX = player.getLocation().getBlockX();
         playerZ = player.getLocation().getBlockZ();
 
@@ -62,23 +59,69 @@ public class Chunk {
 
         playerKingdom = mod.getPlayerKingdom(player);
         kingdomId = db.getKingdoms().getKingdomId(playerKingdom.getKingdomName());
+    }
 
-        db.getChunks().insertChunk(world, minX, maxX, minY, maxY, minZ, maxZ, kingdomId);
-
+    public void obtainChunk() {
+        db.getChunks().insertChunk(worldName, minX, maxX, minY, maxY, minZ, maxZ, kingdomId);
         player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.success.claimed"));
 
         List<Player> onlineKingdomPlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
-        int finalMinX = minX;
-        int finalMinZ = minZ;
         onlineKingdomPlayers.forEach(online -> {
             online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-expanded")
-                    .replace("{0}", world)
-                    .replace("{1}", String.valueOf(finalMinX))
-                    .replace("{2}", String.valueOf(finalMinZ))
+                    .replace("{0}", worldName)
+                    .replace("{1}", String.valueOf(minX))
+                    .replace("{2}", String.valueOf(minZ))
                     .replace("{3}", String.valueOf(maxX))
                     .replace("{4}", String.valueOf(maxZ))
             );
         });
     }
 
+    public void unclaimChunk(Chunk chunk) {
+        db.getChunks().dropChunk(chunk);
+        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.success.unclaimed"));
+
+        List<Player> onlineKingdomPlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+        onlineKingdomPlayers.forEach(online -> {
+            online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-released")
+                    .replace("{0}", worldName)
+                    .replace("{1}", String.valueOf(minX))
+                    .replace("{2}", String.valueOf(minZ))
+                    .replace("{3}", String.valueOf(maxX))
+                    .replace("{4}", String.valueOf(maxZ))
+            );
+        });
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public int getMinX() {
+        return minX;
+    }
+
+    public int getMaxX() {
+        return maxX;
+    }
+
+    public int getMinY() {
+        return minY;
+    }
+
+    public int getMaxY() {
+        return maxY;
+    }
+
+    public int getMinZ() {
+        return minZ;
+    }
+
+    public int getMaxZ() {
+        return maxZ;
+    }
+
+    public int getKingdomId() {
+        return kingdomId;
+    }
 }

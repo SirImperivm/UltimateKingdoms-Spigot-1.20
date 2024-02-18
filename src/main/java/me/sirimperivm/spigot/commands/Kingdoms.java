@@ -88,6 +88,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.claimChunk(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("unclaim")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.unclaim"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.unclaimChunk(p);
+                            }
+                        }
                     } else {
                         getUsage(s);
                     }
@@ -238,6 +249,14 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         Player player = (Player) s;
                         if (mod.hasPermission(player, "expand-territory")) {
                             toReturn.add("claim");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.unclaim"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "expand-territory")) {
+                            toReturn.add("unclaim");
                         }
                     }
                 }

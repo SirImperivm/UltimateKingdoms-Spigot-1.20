@@ -31,11 +31,12 @@ public class ModUtil {
         db = plugin.getDB();
     }
 
-    public void setupKingdomHash() {
+    public void setupSettings() {
         kingdomHash = new HashMap<>();
         BukkitScheduler scheduler = Bukkit.getScheduler();
 
         scheduler.runTaskTimer(plugin, () -> {
+
             for (Player online : Bukkit.getOnlinePlayers()) {
                 if (db.getPlayers().existsPlayerData(online)) {
                     String onlineName = online.getName();
@@ -281,10 +282,27 @@ public class ModUtil {
                 int claimedChunks = db.getChunks().getClaimedChunks(kingdomId);
 
                 if (claimedChunks < maxClaimableChunks) {
-                    Chunk chunk = new Chunk(plugin);
-                    chunk.obtainChunk(player);
+                    Chunk chunk = new Chunk(plugin, player);
+                    chunk.obtainChunk();
                 } else {
                     player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void unclaimChunk(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "expand-territory")) {
+                Chunk chunk = new Chunk(plugin, player);
+                if (db.getChunks().existChunk(chunk)) {
+                    chunk.unclaimChunk(chunk);
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-not-found"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
