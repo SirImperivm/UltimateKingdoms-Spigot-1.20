@@ -177,8 +177,7 @@ public class Chunks {
         int maxY = chunk.getMaxY();
         int minZ = chunk.getMinZ();
         int maxZ = chunk.getMaxZ();
-        int kingdomId = chunk.getKingdomId();
-        String query = "SELECT chunk_id FROM " + table + " WHERE world_name=? AND min_X=? AND max_x=? AND min_y=? AND max_y=? AND min_z=? AND max_z=? AND kingdom_id=?";
+        String query = "SELECT chunk_id FROM " + table + " WHERE world_name=? AND min_X=? AND max_x=? AND min_y=? AND max_y=? AND min_z=? AND max_z=?";
 
         try {
             PreparedStatement state = conn.prepareStatement(query);
@@ -189,7 +188,6 @@ public class Chunks {
             state.setInt(5, maxY);
             state.setInt(6, minZ);
             state.setInt(7, maxZ);
-            state.setInt(8, kingdomId);
             ResultSet rs = state.executeQuery();
             while (rs.next()) {
                 value = true;

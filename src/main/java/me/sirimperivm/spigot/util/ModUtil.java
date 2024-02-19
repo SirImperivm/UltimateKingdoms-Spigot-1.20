@@ -277,15 +277,19 @@ public class ModUtil {
                 String kingdomName = playerKingdom.getKingdomName();
 
                 int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
-                int kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
-                int maxClaimableChunks = config.getSettings().getInt("kingdoms.levels.level-" + kingdomLevel+ ".max-claimable-chunks");
+                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                int maxClaimableChunks = config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".max-claimable-chunks");
                 int claimedChunks = db.getChunks().getClaimedChunks(kingdomId);
 
-                if (claimedChunks < maxClaimableChunks) {
-                    Chunk chunk = new Chunk(plugin, player);
-                    chunk.obtainChunk();
+                Chunk chunk = new Chunk(plugin, player, player.getLocation());
+                if (!db.getChunks().existChunk(chunk)) {
+                    if (claimedChunks < maxClaimableChunks) {
+                        chunk.obtainChunk();
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
+                    }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-already-exist"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
@@ -298,11 +302,17 @@ public class ModUtil {
     public void unclaimChunk(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "expand-territory")) {
-                Chunk chunk = new Chunk(plugin, player);
-                if (db.getChunks().existChunk(chunk)) {
-                    chunk.unclaimChunk(chunk);
+                Chunk chunk = new Chunk(plugin, player, player.getLocation());
+                Kingdom playerKingdom = getPlayerKingdom(player);
+
+                if (chunk.getKingdomId() == db.getKingdoms().getKingdomId(playerKingdom.getKingdomName())) {
+                    if (db.getChunks().existChunk(chunk)) {
+                        chunk.unclaimChunk(chunk);
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-not-found"));
+                    }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-not-found"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.isnt-your.kingdom"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));

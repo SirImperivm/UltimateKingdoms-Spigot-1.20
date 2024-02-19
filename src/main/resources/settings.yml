@@ -8,12 +8,45 @@ storage:
     dbname: "ultimatekingdoms"
     options: ""
 
+other:
+  strings:
+    number-formatter:
+      associations:
+        - "1000.0-k"
+        - "1000000.0-M"
+        - "1000000000.0-B"
+        - "1000000000000.0-T"
+        - "1000000000000000.0-Q"
+      format-size: 5
+
 kingdoms:
   levels:
     level-0:
-      can-rank-up: true
       max-members: 6
       max-claimable-chunks: 12
+      rankup:
+        allowed: true
+        cost: 15000
+        next: level-1
+    level-1:
+      max-members: 15
+      max-claimable-chunks: 24
+      rankup:
+        allowed: true
+        cost: 52000
+        next: level-2
+    level-2:
+      max-members: 24
+      max-claimable-chunks: 48
+      rankup:
+        allowed: true
+        cost: 125000
+        next: level-3
+    level-3:
+      max-members: 30
+      max-claimable-chunks: 64
+      rankup:
+        allowed: false
   roles:
     leader:
       id: 1
@@ -87,6 +120,12 @@ kingdoms:
         manage-roles: false
         expand-territory: false
         disband: false
+  default-settings:
+    creeper-explosions: true
+    friendly-pvp: true
+    enemy-pvp: false
+    tnt-explosions: false
+    enderman-grief: true
 
 messages:
   errors:
@@ -163,6 +202,8 @@ messages:
         hasnt-permission: "&8[&c!&8] &cIl tuo regno non permette che tu ottenga territori."
         max-claims-reached: "&8[&c!&8] &cMassimo di claim raggiunto, se possibile aumenta l'oro del tuo regno per farlo salire di livello."
         claim-not-found: "&8[&c!&8] &cClaim non trovato."
+        claim-already-exist: "&8[&c!&8] &cC'è già un claim in quel chunk."
+        isnt-your-kingdom: "&8[&c!&8] &cNon puoi togliere i claim di un altro regno."
 
 helps:
   commands:
@@ -175,6 +216,26 @@ helps:
       - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
       - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
       - "&5-/kg changerole &d<nomeplayer> <nomeruolo> &7- &5Imposti un ruolo ad un utente del tuo regno."
+
+placeholders:
+  kingdom-level:
+    placeholder: user_kingdom_level # Placeholder: %ukingdoms_user_kingdom_level%
+    return-format: "&d{0}"
+  kingdom-next-level:
+    placeholder: user_kingdom_next_level # Placeholder: %ukingdoms_user_kingdom_next_level%
+    return-format: "&d{0}"
+  kingdom-gold-amount:
+    placeholder: user_kingdom_gold_amount # Placeholder: %ukingdoms_user_kingdom_gold_amount%
+    return-format: "&e🧈 &7{0}"
+  kingdom-gold-amount-formatted:
+    placeholder: user_kingdom_gold_amount_formatted # Placeholder: %ukingdoms_user_kingdom_gold_amount_formatted%
+    return-format: "&e🧈 &7{0}"
+  kingdom-nextrankup-cost:
+    placeholder: user_kingdom_nextrankup_cost # Placeholder: %ukingdoms_user_kingdom_nextrankup_cost%
+    return-format: "&e🧈 &7{0}"
+  kingdom-nextrankup-cost-formatted:
+    placeholder: user_kingdom_nextrankup_cost-formatted # Placeholder: %ukingdoms_user_kingdom_nextrankup_cost-formatted%
+    return-format: "&e🧈 &7{0}"
 
 permissions:
   commands:

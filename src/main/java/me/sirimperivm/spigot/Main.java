@@ -1,6 +1,7 @@
 package me.sirimperivm.spigot;
 
 import me.sirimperivm.spigot.commands.Kingdoms;
+import me.sirimperivm.spigot.extras.PapiExpansion;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
@@ -25,6 +26,15 @@ public final class Main extends JavaPlugin {
 
     private int serverVersion;
 
+    private PapiExpansion papi;
+    void setupDependencies() {
+        if (getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            log.success("&d!! SoftDependency trovata: PlaceholderAPI !!");
+            papi = new PapiExpansion(plugin);
+            log.success("&bPlaceholderAPI collegato correttamente!");
+        }
+    }
+
     @Override
     public void onEnable() {
         plugin = this;
@@ -37,6 +47,7 @@ public final class Main extends JavaPlugin {
         mod = new ModUtil(plugin);
         mod.setupSettings();
         mod.setupRoles();
+        setupDependencies();
 
         getCommand("kg").setExecutor(new Kingdoms(plugin));
         getCommand("kg").setTabCompleter(new Kingdoms(plugin));

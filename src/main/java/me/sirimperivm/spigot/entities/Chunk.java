@@ -5,6 +5,7 @@ import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
 import me.sirimperivm.spigot.util.other.Logger;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -26,7 +27,7 @@ public class Chunk {
     private int playerX, playerZ, minX, maxX, minY, maxY, minZ, maxZ, kingdomId;
     private Kingdom playerKingdom;
 
-    public Chunk(Main plugin, Player player) {
+    public Chunk(Main plugin, Player player, Location loc) {
         this.plugin = plugin;
         this.player = player;
 
@@ -36,14 +37,14 @@ public class Chunk {
         db = plugin.getDB();
         mod = plugin.getMod();
 
-        world = player.getWorld();
+        world = loc.getWorld();
         worldName = world.getName();
         playerName = player.getName();
-        playerX = player.getLocation().getBlockX();
-        playerZ = player.getLocation().getBlockZ();
+        playerX = loc.getBlockX();
+        playerZ = loc.getBlockZ();
 
         minX = playerX;
-        minY = player.getLocation().getWorld().getMinHeight();
+        minY = loc.getWorld().getMinHeight();
         minZ = playerZ;
 
         while (minX%16!=0) {
@@ -54,7 +55,7 @@ public class Chunk {
         }
 
         maxX = minX+15;
-        maxY = player.getLocation().getWorld().getMaxHeight();
+        maxY = loc.getWorld().getMaxHeight();
         maxZ = minZ+15;
 
         playerKingdom = mod.getPlayerKingdom(player);

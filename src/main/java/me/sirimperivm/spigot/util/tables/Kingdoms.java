@@ -60,16 +60,16 @@ public class Kingdoms {
                             "`kingdom_id` INT AUTO_INCREMENT NOT NULL, " +
                             "`kingdomName` VARCHAR(70) NOT NULL, " +
                             "`maxMembers` INT NOT NULL, " +
-                            "`kingdomLevel` INT NULL DEFAULT 0, " +
-                            "`kingdomPoints` INT NULL DEFAULT 0," +
+                            "`kingdomLevel` VARCHAR(100) NOT NULL DEFAULT 'level-0', " +
+                            "`goldAmount` INT NULL DEFAULT 0," +
                             " PRIMARY KEY (kingdom_id)" +
                             ")" :
                     "CREATE TABLE " + table + "(" +
                             "`kingdom_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "`kingdomName` VARCHAR(70) NOT NULL," +
                             "`maxMembers` INTEGER NOT NULL," +
-                            "`kingdomLevel` INTEGER NULL DEFAULT 0," +
-                            "`kingdomPoints` INTEGER NULL DEFAULT 0" +
+                            "`kingdomLevel` VARCHAR(100) NOT NULL DEFAULT 'level-0'," +
+                            "`goldAmount` INTEGER NULL DEFAULT 0" +
                             ")";
 
             try {
@@ -144,8 +144,46 @@ public class Kingdoms {
         return id;
     }
 
-    public int getKingdomLevel(String kingdomName) {
-        int level = 0;
+    public int getGoldAmount(String kingdomName) {
+        int amount = 0;
+        String query = "SELECT goldAmount FROM " + table + " WHERE kingdomName=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, kingdomName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                amount = rs.getInt("goldAmount");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la quantità di oro presente nel regno " + kingdomName + "!");
+            e.printStackTrace();
+        }
+        return amount;
+    }
+
+    public int getGoldAmount(int kingdomId) {
+        int amount = 0;
+        String query = "SELECT goldAmount FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                amount = rs.getInt("goldAmount");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la quantità di oro presente nel regno " + getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return amount;
+    }
+
+    public String getKingdomLevel(String kingdomName) {
+        String level = "level-0";
         String query = "SELECT kingdomLevel FROM " + table + " WHERE kingdomName=?";
 
         try {
@@ -153,7 +191,7 @@ public class Kingdoms {
             state.setString(1, kingdomName);
             ResultSet rs = state.executeQuery();
             while (rs.next()) {
-                level = rs.getInt("kingdomLevel");
+                level = rs.getString("kingdomLevel");
                 break;
             }
         } catch (SQLException e) {
@@ -163,8 +201,8 @@ public class Kingdoms {
         return level;
     }
 
-    public int getKingdomLevel(int kingdomId) {
-        int level = 0;
+    public String getKingdomLevel(int kingdomId) {
+        String level = "level-0";
         String query = "SELECT kingdomLevel FROM " + table + " WHERE kingdom_id=?";
 
         try {
@@ -172,7 +210,7 @@ public class Kingdoms {
             state.setInt(1, kingdomId);
             ResultSet rs = state.executeQuery();
             while (rs.next()) {
-                level = rs.getInt("kingdomLevel");
+                level = rs.getString("kingdomLevel");
                 break;
             }
         } catch (SQLException e) {
