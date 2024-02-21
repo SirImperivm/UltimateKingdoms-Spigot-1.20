@@ -1,4 +1,4 @@
-package me.sirimperivm.spigot.util.colors.patterns;
+package me.sirimperivm.spigot.util.colors.rgb.patterns;
 
 @SuppressWarnings("all")
 public interface Pattern {

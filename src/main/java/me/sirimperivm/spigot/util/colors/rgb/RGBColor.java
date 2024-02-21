@@ -1,12 +1,13 @@
-package me.sirimperivm.spigot.util.colors;
+package me.sirimperivm.spigot.util.colors.rgb;
 
 import com.google.common.collect.ImmutableMap;
-import me.sirimperivm.spigot.Main;
-import me.sirimperivm.spigot.util.colors.patterns.Gradient;
-import me.sirimperivm.spigot.util.colors.patterns.Pattern;
-import me.sirimperivm.spigot.util.colors.patterns.Rainbow;
-import me.sirimperivm.spigot.util.colors.patterns.Solid;
+import me.sirimperivm.spigot.util.colors.rgb.patterns.Gradient;
+import me.sirimperivm.spigot.util.colors.rgb.patterns.Pattern;
+import me.sirimperivm.spigot.util.colors.rgb.patterns.Rainbow;
+import me.sirimperivm.spigot.util.colors.rgb.patterns.Solid;
 import net.md_5.bungee.api.ChatColor;
+import org.apache.commons.lang3.Validate;
+import org.bukkit.Bukkit;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -16,19 +17,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("all")
-public class RGB {
+public class RGBColor {
 
-    private static Main plugin;
-    private static int VERSION;
-
-    public RGB(Main plugin) {
-        this.plugin = plugin;
-        VERSION = plugin.getServerVersion();
-    }
-
+    private static final int VERSION = getVersion();
     private static final boolean SUPPORTS_RGB = VERSION >= 16;
 
     private static final List<String> SPECIAL_COLORS = Arrays.asList("&l", "&n", "&o", "&k", "&m", "§l", "§n", "§o", "§k", "§m");
+
     private static final Map<Color, ChatColor> COLORS = ImmutableMap.<Color, ChatColor>builder()
             .put(new Color(0), ChatColor.getByChar('0'))
             .put(new Color(170), ChatColor.getByChar('1'))
@@ -49,6 +44,9 @@ public class RGB {
 
     private static final List<Pattern> PATTERNS = Arrays.asList(new Gradient(), new Solid(), new Rainbow());
 
+    public RGBColor() {
+    }
+
     public static String process(String string) {
         for (Pattern pattern : PATTERNS) {
             string = pattern.process(string);
@@ -59,13 +57,14 @@ public class RGB {
 
     public static List<String> process(Collection<String> strings) {
         return strings.stream()
-                .map(RGB::process)
+                .map(RGBColor::process)
                 .collect(Collectors.toList());
     }
 
-    public static String color(String string, Color color) {
+    public static String color(String string,  Color color) {
         return (SUPPORTS_RGB ? ChatColor.of(color) : getClosestColor(color)) + string;
     }
+
 
     public static String color(String string, Color start, Color end) {
         String original = string;
@@ -74,6 +73,7 @@ public class RGB {
         return apply(original, colors);
     }
 
+
     public static String rainbow( String string, float saturation) {
         String original = string;
 
@@ -81,9 +81,17 @@ public class RGB {
         return apply(original, colors);
     }
 
-    public static ChatColor getColor(String string) {
-        return SUPPORTS_RGB ? ChatColor.of(new Color(Integer.parseInt(string, 16))) : getClosestColor(new Color(Integer.parseInt(string, 16)));
+
+    public static ChatColor getColor( String string) {
+        return SUPPORTS_RGB ? ChatColor.of(new Color(Integer.parseInt(string, 16)))
+                : getClosestColor(new Color(Integer.parseInt(string, 16)));
     }
+
+
+    public static String stripColorFormatting( String string) {
+        return string.replaceAll("<#[0-9A-F]{6}>|[&§][a-f0-9lnokm]|<[/]?[A-Z]{5,8}(:[0-9A-F]{6})?[0-9]*>", "");
+    }
+
 
     private static String apply( String source, ChatColor[] colors) {
         StringBuilder specialColors = new StringBuilder();
@@ -121,6 +129,7 @@ public class RGB {
         return workingString;
     }
 
+
     private static ChatColor[] createRainbow(int step, float saturation) {
         ChatColor[] colors = new ChatColor[step];
         double colorStep = (1.00 / step);
@@ -135,6 +144,7 @@ public class RGB {
         }
         return colors;
     }
+
 
     private static ChatColor[] createGradient( Color start,  Color end, int step) {
         ChatColor[] colors = new ChatColor[step];
@@ -159,6 +169,7 @@ public class RGB {
         return colors;
     }
 
+
     private static ChatColor getClosestColor(Color color) {
         Color nearestColor = null;
         double nearestDistance = Integer.MAX_VALUE;
@@ -172,5 +183,23 @@ public class RGB {
         }
 
         return COLORS.get(nearestColor);
+    }
+
+    private static int getVersion() {
+        String version = Bukkit.getVersion();
+        Validate.notEmpty(version, "Impossibile ottenere la versione principale di Minecraft da una stringa nulla o vuota");
+
+        int index = version.lastIndexOf("MC:");
+        if (index != -1) {
+            version = version.substring(index + 4, version.length() -1);
+        } else if (version.endsWith("SNAPSHOT")) {
+            index = version.indexOf('-');
+            version = version.substring(0, index);
+        }
+
+        int lastDot = version.lastIndexOf('.');
+        if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
+
+        return Integer.parseInt(version.substring(2));
     }
 }
