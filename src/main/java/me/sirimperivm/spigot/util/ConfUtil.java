@@ -11,6 +11,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("all")
 public class ConfUtil {
@@ -82,5 +84,16 @@ public class ConfUtil {
 
     public String getTranslatedString(String target) {
         return Colors.translateString(this.getSettings().getString(target));
+    }
+
+    public List<String> translateList(String target) {
+        List<String> notColored = this.getSettings().getStringList(target);
+        List<String> colored = new ArrayList<>();
+
+        for (String s : notColored) {
+            colored.add(Colors.translateString(s));
+        }
+
+        return colored;
     }
 }

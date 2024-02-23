@@ -158,4 +158,8 @@ public class DBUtil {
     public Chunks getChunks() {
         return chunks;
     }
+
+    public Main getPlugin() {
+        return plugin;
+    }
 }

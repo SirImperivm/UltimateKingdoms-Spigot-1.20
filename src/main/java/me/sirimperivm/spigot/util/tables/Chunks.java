@@ -168,6 +168,40 @@ public class Chunks {
         return chunks;
     }
 
+    public int kingdomId(Chunk chunk) {
+        int id = 0;
+
+        String world = chunk.getWorld().getName();
+        int minX = chunk.getMinX();
+        int maxX = chunk.getMaxX();
+        int minY = chunk.getMinY();
+        int maxY = chunk.getMaxY();
+        int minZ = chunk.getMinZ();
+        int maxZ = chunk.getMaxZ();
+        String query = "SELECT kingdom_id FROM " + table + " WHERE world_name=? AND min_X=? AND max_x=? AND min_y=? AND max_y=? AND min_z=? AND max_z=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, world);
+            state.setInt(2, minX);
+            state.setInt(3, maxX);
+            state.setInt(4, minY);
+            state.setInt(5, maxY);
+            state.setInt(6, minZ);
+            state.setInt(7, maxZ);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                id = rs.getInt("kingdom_id");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere l'id del regno del chunk: " + world + " - " + minX + " - " + minY + " - " + minZ + "!");
+            e.printStackTrace();
+        }
+
+        return id;
+    }
+
     public boolean existChunk(Chunk chunk) {
         boolean value = false;
         String world = chunk.getWorld().getName();

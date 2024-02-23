@@ -182,6 +182,25 @@ public class Players {
         return kid;
     }
 
+    public int getPlayersCount(int kingdomId) {
+        int count = 0;
+        String query = "SELECT COUNT(*) AS conto FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                count = rs.getInt("conto");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il conto dei player del regno " + db.getKingdoms().getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return count;
+    }
+
     public boolean existsPlayerData(Player player) {
         boolean value = false;
         String playerName = player.getName();

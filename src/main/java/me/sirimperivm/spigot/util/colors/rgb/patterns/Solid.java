@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 
 @SuppressWarnings("all")
 public class Solid implements Pattern {
-    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("<SOLID:([0-9A-Fa-f]{6})>|#\\{([0-9A-Fa-f]{6})}");
+    java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("->S:([0-9A-Fa-f]{6})/|#\\{([0-9A-Fa-f]{6})}");
 
     public String process(String string) {
         Matcher matcher = pattern.matcher(string);

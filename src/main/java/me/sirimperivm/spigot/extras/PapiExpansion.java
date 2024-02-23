@@ -52,7 +52,7 @@ public class PapiExpansion extends PlaceholderExpansion {
     public String onRequest(OfflinePlayer player, String param) {
         String toReturn = "&4Placeholder ERROR!";
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-level.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-level.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
@@ -65,7 +65,7 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-next-level.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-next-level.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
@@ -79,12 +79,12 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-gold-amount.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-gold-amount.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
                 String kingdomName = playerKingdom.getKingdomName();
-                int goldAmount = db.getKingdoms().getGoldAmount(kingdomName);
+                double goldAmount = db.getKingdoms().getGoldAmount(kingdomName);
 
                 toReturn = config.getTranslatedString("placeholders.kingdom-gold-amount.return-format").replace("{0}", String.valueOf(goldAmount));
             } else {
@@ -92,7 +92,7 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-gold-amount-formatted.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-gold-amount-formatted.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
@@ -107,13 +107,13 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-nextrankup-cost.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-nextrankup-cost.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
                 String kingdomName = playerKingdom.getKingdomName();
                 String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
-                int rankupCost = config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".rankup.cost");
+                double rankupCost = config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost");
 
                 toReturn = config.getTranslatedString("placeholders.kingdom-nextrankup-cost.return-format").replace("{0}", String.valueOf(rankupCost));
             } else {
@@ -121,7 +121,7 @@ public class PapiExpansion extends PlaceholderExpansion {
             }
         }
 
-        if (param.equalsIgnoreCase(config.getTranslatedString("placeholders.kingdom-nextrankup-cost-formatted.placeholder"))) {
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-nextrankup-cost-formatted.placeholder"))) {
             Player onlinePlayer = (Player) player;
             if (db.getPlayers().existsPlayerData(onlinePlayer)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
@@ -129,9 +129,63 @@ public class PapiExpansion extends PlaceholderExpansion {
                 String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
                 int format_size = config.getSettings().getInt("other.strings.number-formatter.format-size");
                 List<String> associations = config.getSettings().getStringList("other.strings.number-formatter.associations");
-                String rankupCost = Strings.formatNumber(config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".rankup.cost"), format_size, associations);
+                String rankupCost = Strings.formatNumber(config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost"), format_size, associations);
 
-                toReturn = config.getTranslatedString("placeholders.kingdom-nextrankup-cost-formatted.return-format").replace("{0}", String.valueOf(rankupCost));
+                toReturn = config.getTranslatedString("placeholders.kingdom-nextrankup-cost-formatted.return-format").replace("{0}", rankupCost);
+            } else {
+                toReturn = Colors.translateString("&4N/A");
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-name.placeholder"))) {
+            Player onlinePlayer = (Player) player;
+            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
+                String kingdomName = playerKingdom.getKingdomName();
+
+                toReturn = config.getTranslatedString("placeholders.kingdom-name.return-format").replace("{0}", kingdomName);
+            } else {
+                toReturn = Colors.translateString("&4N/A");
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-role.placeholder"))) {
+            Player onlinePlayer = (Player) player;
+            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
+                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
+                String roleName = db.getRoles().getRoleName(roleId);
+
+                toReturn = config.getTranslatedString("placeholders.kingdom-role.return-format").replace("{0}", roleName);
+            } else {
+                toReturn = Colors.translateString("&4N/A");
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-role-tag.placeholder"))) {
+            Player onlinePlayer = (Player) player;
+            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
+                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
+                String roleName = db.getRoles().getRoleName(roleId);
+                String roleTag = config.getTranslatedString("kingdoms.roles." + roleName + ".chat-tag");
+
+                toReturn = config.getTranslatedString("placeholders.kingdom-role-tag.return-format").replace("{0}", roleTag);
+            } else {
+                toReturn = Colors.translateString("&4N/A");
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-tag.placeholder"))) {
+            Player onlinePlayer = (Player) player;
+            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
+                String kingdomName = playerKingdom.getKingdomName();
+                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
+                String roleName = db.getRoles().getRoleName(roleId);
+                String roleTag = config.getTranslatedString("kingdoms.roles." + roleName + ".chat-tag");
+
+                toReturn = config.getTranslatedString("placeholders.kingdom-tag.return-format").replace("{0}", roleTag + kingdomName);
             } else {
                 toReturn = Colors.translateString("&4N/A");
             }

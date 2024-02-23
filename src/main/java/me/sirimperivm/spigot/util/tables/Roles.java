@@ -89,6 +89,25 @@ public class Roles {
         }
     }
 
+    public String getRoleName(int roleId) {
+        String roleName = null;
+        String query = "SELECT role_name FROM roles WHERE kingdom_role=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, roleId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                roleName = rs.getString("role_name");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il nome del ruolo " + roleId + "!");
+            e.printStackTrace();
+        }
+        return roleName;
+    }
+
     public int getRoleId(String roleName) {
         int roleId = 0;
         String query = "SELECT kingdom_role FROM " + table + " WHERE role_name=?";

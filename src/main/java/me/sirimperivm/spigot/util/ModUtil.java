@@ -2,14 +2,16 @@ package me.sirimperivm.spigot.util;
 
 import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.entities.Chunk;
+import me.sirimperivm.spigot.entities.Gui;
 import me.sirimperivm.spigot.entities.Kingdom;
 import me.sirimperivm.spigot.util.other.Logger;
+import me.sirimperivm.spigot.util.other.Strings;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("all")
 public class ModUtil {
@@ -74,6 +76,55 @@ public class ModUtil {
                     }
                 }
             }
+        }
+    }
+
+    public void sendKingdomsList(CommandSender target, int page) {
+        List<Kingdom> kingdomsList = db.getKingdoms().kingdomsList();
+        Map<String, Double> map = new HashMap<>();
+        for (Kingdom kingdom : kingdomsList) {
+            String kingdomName = kingdom.getKingdomName();
+            double gold = kingdom.getGoldAmount();
+            map.put(kingdomName, gold);
+        }
+
+        List<Map.Entry<String, Double>> sortedList = new ArrayList<>(map.entrySet());
+        sortedList.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
+
+        List<Kingdom> kingdoms = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : sortedList) {
+            Kingdom kingdom = new Kingdom(plugin, entry.getKey());
+            kingdoms.add(kingdom);
+        }
+
+        int pageSize = 5;
+        int pageCount = (int) Math.ceil((double) kingdoms.size()/pageSize);
+        if (page < 1 || page > pageCount) {
+            target.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.page-not-found"));
+        } else {
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.header"));
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.title"));
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.spacer"));
+            int startIndex = (page-1) * pageSize;
+            int endIndex = Math.min(startIndex+pageSize, kingdoms.size());
+            for (int i=startIndex; i<endIndex; i++) {
+                Kingdom kingdom = kingdoms.get(i);
+                if (kingdom != null) {
+                    String kingdomName = kingdom.getKingdomName();
+                    int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
+                    int members = db.getPlayers().getPlayersCount(kingdomId);
+                    double goldAmount = db.getKingdoms().getGoldAmount(kingdomId);
+                    String formattedGoldAmount = Strings.formatNumber(goldAmount, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+
+                    target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.line")
+                            .replace("{0}", kingdomName)
+                            .replace("{1}", String.valueOf(members))
+                            .replace("{2}", formattedGoldAmount));
+                }
+            }
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.page")
+                    .replace("{0}", String.valueOf(page)));
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.footer"));
         }
     }
 
@@ -320,6 +371,23 @@ public class ModUtil {
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-in-a-kingdom"));
         }
+    }
+
+    public void sendDepositGui(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "deposit")) {
+                Gui depositGui = new Gui(plugin, "kingdom-deposit");
+                depositGui.sendGui(player);
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.not-in-a-kingdom"));
+        }
+    }
+
+    public boolean isInClaimedChunk(Chunk chunk) {
+        return db.getChunks().existChunk(chunk);
     }
 
     public boolean hasPermission(Player player, String permName) {

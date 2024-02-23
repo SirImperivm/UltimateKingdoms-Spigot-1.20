@@ -70,6 +70,10 @@ public class Kingdom {
         return;
     }
 
+    public double getGoldAmount() {
+        return db.getKingdoms().getGoldAmount(kingdomName);
+    }
+
     public String getKingdomName() {
         return kingdomName;
     }

@@ -27,6 +27,37 @@ public class Chunk {
     private int playerX, playerZ, minX, maxX, minY, maxY, minZ, maxZ, kingdomId;
     private Kingdom playerKingdom;
 
+    private int locX, locZ;
+
+    public Chunk(Main plugin, Location loc) {
+        this.plugin = plugin;
+        log = plugin.getLog();
+
+        config = plugin.getCM();
+        db = plugin.getDB();
+        mod = plugin.getMod();
+
+        world = loc.getWorld();
+        worldName = world.getName();
+        locX = loc.getBlockX();
+        locZ = loc.getBlockZ();
+
+        minX = locX;
+        minY = world.getMinHeight();
+        minZ = locZ;
+
+        while (minX%16!=0) {
+            minX--;
+        }
+        while (minZ%16!=0) {
+            minZ--;
+        }
+
+        maxX = minX+15;
+        maxY = world.getMaxHeight();
+        maxZ = minZ+15;
+    }
+
     public Chunk(Main plugin, Player player, Location loc) {
         this.plugin = plugin;
         this.player = player;
@@ -44,7 +75,7 @@ public class Chunk {
         playerZ = loc.getBlockZ();
 
         minX = playerX;
-        minY = loc.getWorld().getMinHeight();
+        minY = world.getMinHeight();
         minZ = playerZ;
 
         while (minX%16!=0) {
@@ -55,11 +86,11 @@ public class Chunk {
         }
 
         maxX = minX+15;
-        maxY = loc.getWorld().getMaxHeight();
+        maxY = world.getMaxHeight();
         maxZ = minZ+15;
 
         playerKingdom = mod.getPlayerKingdom(player);
-        kingdomId = db.getKingdoms().getKingdomId(playerKingdom.getKingdomName());
+        kingdomId = db.getPlayers().getKingdomId(player);
     }
 
     public void obtainChunk() {

@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 
 @SuppressWarnings("all")
 public class Gradient implements Pattern {
-    java.util.regex.Pattern patt = java.util.regex.Pattern.compile("<GRADIENT:([0-9A-Fa-f]{6})>(.*?)</GRADIENT:([0-9A-Fa-f]{6})>");
+    java.util.regex.Pattern patt = java.util.regex.Pattern.compile("->G:([0-9A-Fa-f]{6})/(.*?)/->G:([0-9A-Fa-f]{6})");
 
     @Override
     public String process(String string) {

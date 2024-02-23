@@ -19,6 +19,32 @@ other:
         - "1000000000000000.0-Q"
       format-size: 5
 
+deposit-conversions:
+  nuggets:
+    type: GOLD_NUGGET
+    value: 0.9
+  raw:
+    type: RAW_GOLD
+    value: 1.0
+  ingots:
+    type: GOLD_INGOT
+    value: 3.0
+  block:
+    type: GOLD_BLOCK
+    value: 27.0
+
+guis:
+  kingdom-deposit:
+    title: "->G:9C12F5/&lDeposito Oro/->G:D0B637"
+    rows: 6
+    filler:
+      enabled: false
+      material: RED_STAINED_GLASS_PANE
+      name: "&c*"
+      lore: []
+      model: 0
+    items: {}
+
 kingdoms:
   levels:
     level-0:
@@ -26,21 +52,21 @@ kingdoms:
       max-claimable-chunks: 12
       rankup:
         allowed: true
-        cost: 15000
+        cost: 15000.0
         next: level-1
     level-1:
       max-members: 15
       max-claimable-chunks: 24
       rankup:
         allowed: true
-        cost: 52000
+        cost: 52000.0
         next: level-2
     level-2:
       max-members: 24
       max-claimable-chunks: 48
       rankup:
         allowed: true
-        cost: 125000
+        cost: 125000.0
         next: level-3
     level-3:
       max-members: 30
@@ -50,6 +76,7 @@ kingdoms:
   roles:
     leader:
       id: 1
+      chat-tag: "♛ "
       weight: 100
       default-permissions:
         use-home: true
@@ -60,14 +87,17 @@ kingdoms:
         open-doors: true
         invite-players: true
         expel-players: true
+        can-rankup-kingdom: true
         use-warps: true
         set-warps: true
         manage-players: true
         manage-roles: true
+        deposit: true
         expand-territory: true
         disband: true
     officer:
       id: 2
+      chat-tag: "✶ "
       weight: 75
       default-permissions:
         use-home: true
@@ -78,14 +108,17 @@ kingdoms:
         open-doors: true
         invite-players: true
         expel-players: false
+        can-rankup-kingdom: true
         use-warps: true
         set-warps: true
         manage-players: true
         manage-roles: false
+        deposit: true
         expand-territory: true
         disband: false
     moderator:
       id: 3
+      chat-tag: "✦ "
       weight: 50
       default-permissions:
         use-home: true
@@ -96,14 +129,17 @@ kingdoms:
         open-doors: true
         invite-players: false
         expel-players: false
+        can-rankup-kingdom: false
         use-warps: true
         set-warps: false
         manage-players: false
         manage-roles: false
+        deposit: true
         expand-territory: false
         disband: false
     recruit:
       id: 4
+      chat-tag: "・ "
       weight: 25
       default-permissions:
         use-home: true
@@ -114,15 +150,17 @@ kingdoms:
         open-doors: true
         invite-players: false
         expel-players: false
-        use-warps: false
+        can-rankup-kingdom: false
+        use-warps: true
         set-warps: false
         manage-players: false
         manage-roles: false
+        deposit: false
         expand-territory: false
         disband: false
   default-settings:
-    creeper-explosions: true
-    friendly-pvp: true
+    mob-explosions: true
+    friendly-fire: true
     enemy-pvp: false
     tnt-explosions: false
     enderman-grief: true
@@ -137,6 +175,7 @@ messages:
     general:
       error:
         user-offline: "&8[&c!&8] &cL'utente scelto è offline o non esiste."
+        page-not-found: "&8[&c!&8] &cPagina scelta non trovata."
     creation:
       error:
         already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."
@@ -204,18 +243,55 @@ messages:
         claim-not-found: "&8[&c!&8] &cClaim non trovato."
         claim-already-exist: "&8[&c!&8] &cC'è già un claim in quel chunk."
         isnt-your-kingdom: "&8[&c!&8] &cNon puoi togliere i claim di un altro regno."
+    deposit:
+      success:
+        deposited: "&8[&a!&8] &aHai depositato &2{0}&a d'oro nel tuo regno."
+      info:
+        deposited-broadcast: "&8[&e!&8] &eIl membro &6{0}&e del tuo regno ha depositato &6{1}&e d'oro."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon hai il permesso di depositare oro nel regno."
+    building:
+      error:
+        cant-place-blocks: "&8[&c!&8] &cNon hai il permesso di piazzare blocchi nel territorio del tuo regno."
+        cant-break-blocks: "&8[&c!&8] &cNon hai il permesso di rompere blocchi nel territorio del tuo regno."
+        isnt-your-kingdom: "&8[&c!&8] &cNon puoi rompere o piazzare blocchi in questo territorio."
+    use-of:
+      containers:
+        error:
+          cant-use: "&8[&c!&8] &cNon hai il permesso di aprire contenitori nel territorio del tuo regno."
+          isnt-your-kingdom: "&8[&c!&8] &cNon puoi aprire contenitori in questo territorio."
+      doors:
+        error:
+          cant-use: "&8[&c!&8] &cNon hai il permesso di aprire porte nel territorio del tuo regno."
+          isnt-your-kingdom: "&8[&c!&8] &cNon puoi aprire porte in questo territorio."
+    pvp:
+      error:
+        friendly-fire-not-enabled: "&8[&c!&8] &cNei territori non è ammesso il Friendly Fire."
+        enemy-pvp-not-enabled: "&8[&c!&8] &cNon puoi colpire i membri di questo territorio."
 
 helps:
   commands:
     kingdoms:
       - "&5-/kg accept &7- &5Accetti l'invito in un regno."
-      - "&5-/kg disband &7- &5Elimini il tuo regno."
       - "&5-/kg claim &7- &5Ottieni un chunk 16x16 di territorio per il tuo regno."
+      - "&5-/kg deposit &7- &5Apre la gui per depositare l'oro nel tuo regno."
+      - "&5-/kg disband &7- &5Elimini il tuo regno."
       - "&5-/kg unclaim &7- &5Rilasci un chunk 16x16 di territorio del tuo regno."
+      - "&5-/kg list &d[pagina] &7- &5Mostra la lista dei regni creati."
       - "&5-/kg create &d<nome> &7- &5Crei un regno."
-      - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
       - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
+      - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
       - "&5-/kg changerole &d<nomeplayer> <nomeruolo> &7- &5Imposti un ruolo ad un utente del tuo regno."
+
+formats-lists:
+  kingdoms-list:
+    header: "->G:444444/&m                              /->G:666666"
+    title: "->S:F7DC6F/&lLista Regni:"
+    spacer: "&r"
+    line: "->S:FF5733/{0}: ->S:EF6FF7/{1} &7membri, ->S:F7DC6F/{2} &7oro."
+    page: "&9Pagina: &7{0}"
+    footer: "->G:444444/&m                              /->G:666666"
 
 placeholders:
   kingdom-level:
@@ -236,6 +312,18 @@ placeholders:
   kingdom-nextrankup-cost-formatted:
     placeholder: user_kingdom_nextrankup_cost-formatted # Placeholder: %ukingdoms_user_kingdom_nextrankup_cost-formatted%
     return-format: "&e🧈 &7{0}"
+  kingdom-name:
+    placeholder: user_kingdom_name # Placeholder: %ukingdoms_user_kingdom_name%
+    return-format: "&7{0}"
+  kingdom-tag:
+    placeholder: user_kingdom_tag # Placeholder: %ukingdoms_user_kingdom_tag%
+    return-format: "&6{0}"
+  kingdom-role:
+    placeholder: user_kingdom_role # Placeholder: %ukingdoms_user_kingdom_role%
+    return-format: "&7{0}"
+  kingdom-role-tag:
+    placeholder: user_kingdom_role_tag # Placeholder: %ukingdoms_user_kingdom_role_tag%
+    return-format: "&7{0}"
 
 permissions:
   commands:
@@ -249,3 +337,7 @@ permissions:
       change-role: kingdoms.use
       claim: kingdoms.use
       unclaim: kingdoms.use
+      deposit: kingdoms.use
+      list: kingdoms.use
+  events:
+    test-string: kingdoms.testring

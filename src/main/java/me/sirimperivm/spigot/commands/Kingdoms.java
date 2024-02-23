@@ -16,7 +16,9 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("all")
 public class Kingdoms implements CommandExecutor, TabCompleter {
@@ -99,6 +101,23 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.unclaimChunk(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("deposit")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.deposit"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.sendDepositGui(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("list")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.list"))) {
+                            return true;
+                        } else {
+                            mod.sendKingdomsList(s, 1);
+                        }
                     } else {
                         getUsage(s);
                     }
@@ -157,6 +176,13 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 }
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("list")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
+                            return true;
+                        } else {
+                            int page = Integer.parseInt(a[0]);
+                            mod.sendKingdomsList(s, page);
+                        }
                     } else {
                         getUsage(s);
                     }
@@ -196,51 +222,11 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
         if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.main"))) {
             if (a.length == 1) {
                 List<String> toReturn = new ArrayList<>();
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.create"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (!db.getPlayers().existsPlayerData(player)) {
-                            toReturn.add("create");
-                        }
-                    }
-                }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.disband"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (mod.hasPermission(player, "disband")) {
-                            toReturn.add("disband");
-                        }
-                    }
-                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.accept"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;
                         if (!db.getPlayers().existsPlayerData(player)) {
                             toReturn.add("accept");
-                        }
-                    }
-                }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.invite"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (mod.hasPermission(player, "invite-players")) {
-                            toReturn.add("invite");
-                        }
-                    }
-                }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (mod.hasPermission(player, "expel-players")) {
-                            toReturn.add("expel");
-                        }
-                    }
-                }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (mod.hasPermission(player, "manage-players")) {
-                            toReturn.add("changerole");
                         }
                     }
                 }
@@ -252,6 +238,22 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.deposit"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "deposit")) {
+                            toReturn.add("deposit");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.disband"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "disband")) {
+                            toReturn.add("disband");
+                        }
+                    }
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.unclaim"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;
@@ -260,15 +262,89 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.list"))) {
+                    toReturn.add("list");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.create"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (!db.getPlayers().existsPlayerData(player)) {
+                            toReturn.add("create");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "expel-players")) {
+                            toReturn.add("expel");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.invite"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "invite-players")) {
+                            toReturn.add("invite");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.change-role"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-players")) {
+                            toReturn.add("changerole");
+                        }
+                    }
+                }
                 return toReturn;
             } else if (a.length == 2) {
                 List<String> toReturn = new ArrayList<>();
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.list"))) {
+                    if (a[0].equalsIgnoreCase("list")) {
+                        List<Kingdom> kingdomsList = db.getKingdoms().kingdomsList();
+                        Map<String, Double> map = new HashMap<>();
+                        for (Kingdom kingdom : kingdomsList) {
+                            String kingdomName = kingdom.getKingdomName();
+                            double gold = kingdom.getGoldAmount();
+                            map.put(kingdomName, gold);
+                        }
+
+                        List<Map.Entry<String, Double>> sortedList = new ArrayList<>(map.entrySet());
+                        sortedList.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
+
+                        List<Kingdom> kingdoms = new ArrayList<>();
+                        for (Map.Entry<String, Double> entry : sortedList) {
+                            Kingdom kingdom = new Kingdom(plugin, entry.getKey());
+                            kingdoms.add(kingdom);
+                        }
+
+                        int pageSize = 5;
+                        int pageCount = (int) Math.ceil((double) kingdoms.size()/pageSize);
+                        for (int page=1; page<=pageCount; page++) {
+                            toReturn.add(String.valueOf(page));
+                        }
+                    }
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.create"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;
                         if (!db.getPlayers().existsPlayerData(player)) {
                             if (a[0].equalsIgnoreCase("create")) {
                                 toReturn.add("<kingdomName>");
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "expel-players")) {
+                            if (a[0].equalsIgnoreCase("expel")) {
+                                int kingdomId = db.getPlayers().getKingdomId(player);
+                                for (Player online : db.getKingdoms().kingdomPlayersList(kingdomId)) {
+                                    toReturn.add(online.getName());
+                                }
                             }
                         }
                     }
@@ -282,19 +358,6 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                     if (!db.getPlayers().existsPlayerData(online)) {
                                         toReturn.add(online.getName());
                                     }
-                                }
-                            }
-                        }
-                    }
-                }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
-                    if (s instanceof Player) {
-                        Player player = (Player) s;
-                        if (mod.hasPermission(player, "expel-players")) {
-                            if (a[0].equalsIgnoreCase("expel")) {
-                                int kingdomId = db.getPlayers().getKingdomId(player);
-                                for (Player online : db.getKingdoms().kingdomPlayersList(kingdomId)) {
-                                    toReturn.add(online.getName());
                                 }
                             }
                         }
