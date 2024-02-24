@@ -122,6 +122,7 @@ public class ModUtil {
                             .replace("{2}", formattedGoldAmount));
                 }
             }
+            target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.spacer"));
             target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.page")
                     .replace("{0}", String.valueOf(page)));
             target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.footer"));

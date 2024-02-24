@@ -18,6 +18,17 @@ other:
         - "1000000000000.0-T"
         - "1000000000000000.0-Q"
       format-size: 5
+  placeholders:
+    kingdom-level: user_kingdom_level # Placeholder: %ukg_user_kingdom_level%
+    kingdom-next-level: user_kingdom_next_level # Placeholder: %ukg_user_kingdom_next_level%
+    kingdom-gold-amount: user_kingdom_gold_amount # Placeholder: %ukg_user_kingdom_gold_amount%
+    kingdom-gold-amount-formatted: user_kingdom_gold_amount_formatted # Placeholder: %ukg_user_kingdom_gold_amount_formatted%
+    kingdom-next-level-cost: user_kingdom_nextrankup_cost # Placeholder: %ukg_user_kingdom_nextrankup_cost%
+    kingdom-next-level-cost-formatted: user_kingdom_nextrankup_cost-formatted # Placeholder: %ukg_user_kingdom_nextrankup_cost-formatted%
+    kingdom-name: user_kingdom_name # Placeholder: %ukg_user_kingdom_name%
+    kingdom-role: user_kingdom_role # Placeholder: %ukg_user_kingdom_role%
+    kingdom-role-tag: user_kingdom_role_tag # Placeholder: %ukg_user_kingdom_role_tag%
+    kingdom-tag: user_kingdom_tag # Placeholder: %ukg_user_kingdom_tag%
 
 deposit-conversions:
   nuggets:
@@ -159,10 +170,8 @@ kingdoms:
         expand-territory: false
         disband: false
   default-settings:
-    mob-explosions: true
     friendly-fire: true
     enemy-pvp: false
-    tnt-explosions: false
     enderman-grief: true
 
 messages:
@@ -289,41 +298,9 @@ formats-lists:
     header: "->G:444444/&m                              /->G:666666"
     title: "->S:F7DC6F/&lLista Regni:"
     spacer: "&r"
-    line: "->S:FF5733/{0}: ->S:EF6FF7/{1} &7membri, ->S:F7DC6F/{2} &7oro."
+    line: "->S:FF5733/&l{0}: ->S:EF6FF7/{1} &7membri, ->S:F7DC6F/{2} &7oro."
     page: "&9Pagina: &7{0}"
     footer: "->G:444444/&m                              /->G:666666"
-
-placeholders:
-  kingdom-level:
-    placeholder: user_kingdom_level # Placeholder: %ukingdoms_user_kingdom_level%
-    return-format: "&d{0}"
-  kingdom-next-level:
-    placeholder: user_kingdom_next_level # Placeholder: %ukingdoms_user_kingdom_next_level%
-    return-format: "&d{0}"
-  kingdom-gold-amount:
-    placeholder: user_kingdom_gold_amount # Placeholder: %ukingdoms_user_kingdom_gold_amount%
-    return-format: "&e🧈 &7{0}"
-  kingdom-gold-amount-formatted:
-    placeholder: user_kingdom_gold_amount_formatted # Placeholder: %ukingdoms_user_kingdom_gold_amount_formatted%
-    return-format: "&e🧈 &7{0}"
-  kingdom-nextrankup-cost:
-    placeholder: user_kingdom_nextrankup_cost # Placeholder: %ukingdoms_user_kingdom_nextrankup_cost%
-    return-format: "&e🧈 &7{0}"
-  kingdom-nextrankup-cost-formatted:
-    placeholder: user_kingdom_nextrankup_cost-formatted # Placeholder: %ukingdoms_user_kingdom_nextrankup_cost-formatted%
-    return-format: "&e🧈 &7{0}"
-  kingdom-name:
-    placeholder: user_kingdom_name # Placeholder: %ukingdoms_user_kingdom_name%
-    return-format: "&7{0}"
-  kingdom-tag:
-    placeholder: user_kingdom_tag # Placeholder: %ukingdoms_user_kingdom_tag%
-    return-format: "&6{0}"
-  kingdom-role:
-    placeholder: user_kingdom_role # Placeholder: %ukingdoms_user_kingdom_role%
-    return-format: "&7{0}"
-  kingdom-role-tag:
-    placeholder: user_kingdom_role_tag # Placeholder: %ukingdoms_user_kingdom_role_tag%
-    return-format: "&7{0}"
 
 permissions:
   commands:

@@ -15,7 +15,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -24,7 +23,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -187,48 +185,6 @@ public class Event implements Listener {
     }
 
     @EventHandler
-    public void onEntityExplode(EntityExplodeEvent e) {
-        Entity entity = e.getEntity();
-        List<Block> blocksList = e.blockList();
-
-        List<EntityType> mobList = Arrays.asList(
-                EntityType.CREEPER,
-                EntityType.GHAST,
-                EntityType.ENDER_DRAGON,
-                EntityType.WITHER
-        );
-
-        List<EntityType> tntList = Arrays.asList(
-                EntityType.PRIMED_TNT,
-                EntityType.MINECART_TNT
-        );
-
-        if (mobList.contains(entity.getType())) {
-            for (Block block : blocksList) {
-                Location blockLocation = block.getLocation();
-                Chunk blockChunk = new Chunk(plugin, blockLocation);
-
-                if (db.getChunks().existChunk(blockChunk)) {
-                    if (config.getSettings().getBoolean("kingdoms.default-settings.mob-explosions")) {
-                        e.blockList().remove(block);
-                    }
-                }
-            }
-        } else if (tntList.contains(entity.getType())) {
-            for (Block block : blocksList) {
-                Location blockLocation = block.getLocation();
-                Chunk blockChunk = new Chunk(plugin, blockLocation);
-
-                if (db.getChunks().existChunk(blockChunk)) {
-                    if (config.getSettings().getBoolean("kingdoms.default-settings.tnt-explosions")) {
-                        e.blockList().remove(block);
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler
     public void onDamage(EntityDamageByEntityEvent e) {
         Entity victimEntity = e.getEntity();
         Entity killerEntity = e.getDamager();
@@ -238,37 +194,41 @@ public class Event implements Listener {
             Player killer = (Player) killerEntity;
 
             Location victimLocation = victim.getLocation();
-            Chunk victimChunk = new Chunk(plugin, victim, victimLocation);
+            Chunk victimChunk = new Chunk(plugin, victimLocation);
 
             if (db.getChunks().existChunk(victimChunk)) {
-                if (db.getPlayers().existsPlayerData(killer) && db.getPlayers().existsPlayerData(victim)) {
-                    int kingdomId = db.getChunks().kingdomId(victimChunk);
-                    int killerKingdomId = db.getPlayers().getKingdomId(killer);
-                    int victimKingdomId = db.getPlayers().getKingdomId(victim);
-
-                    if ((victimKingdomId == killerKingdomId) && (victimKingdomId == killerKingdomId)) {
-                        if (!config.getSettings().getBoolean("kingdoms.default-settings.friendly-fire")) {
-                            e.setCancelled(true);
-                            killer.sendMessage(config.getTranslatedString("messages.kingdoms.pvp.error.friendly-fire-not-enabled"));
-                            return;
-                        }
-                    }
-
-                    if ((victimKingdomId == killerKingdomId) && (victimKingdomId != killerKingdomId)) {
-                        if (!config.getSettings().getBoolean("kingdoms.default-settings.enemy-pvp")) {
-                            e.setCancelled(true);
-                            killer.sendMessage(config.getTranslatedString("messages.kingdoms.pvp.error.enemy-pvp-not-enabled"));
-                            return;
-                        }
-                    }
+                int killerKingdomId = 0;
+                if (db.getPlayers().existsPlayerData(killer)) {
+                    killerKingdomId = db.getPlayers().getKingdomId(killer);
                 }
 
+                int victimKingdomId = 0;
                 if (db.getPlayers().existsPlayerData(victim)) {
-                    int kingdomId = db.getChunks().kingdomId(victimChunk);
-                    int victimKingdomId = db.getPlayers().getKingdomId(victim);
+                    victimKingdomId = db.getPlayers().getKingdomId(victim);
+                }
 
-                    if (victimKingdomId == kingdomId) {
+                int chunkKingdomId = db.getChunks().kingdomId(victimChunk);
+
+                if (victimKingdomId != 0 && killerKingdomId != 0) {
+                    if (chunkKingdomId == victimKingdomId) {
+                        if (killerKingdomId == victimKingdomId) {
+                            if (!config.getSettings().getBoolean("kingdoms.default-settings.friendly-fire")) {
+                                e.setCancelled(true);
+                                killer.sendMessage(config.getTranslatedString("messages.kingdoms.pvp.error.friendly-fire-not-enabled"));
+                                return;
+                            }
+                        } else {
+                            if (!config.getSettings().getBoolean("kingdoms.default-settings.enemy-pvp")) {
+                                e.setCancelled(true);
+                                killer.sendMessage(config.getTranslatedString("messages.kingdoms.pvp.error.enemy-pvp-not-enabled"));
+                                return;
+                            }
+                        }
+                    }
+                } else if (victimKingdomId != 0 && killerKingdomId == 0) {
+                    if (chunkKingdomId == victimKingdomId) {
                         if (!config.getSettings().getBoolean("kingdoms.default-settings.enemy-pvp")) {
+                            e.setCancelled(true);
                             killer.sendMessage(config.getTranslatedString("messages.kingdoms.pvp.error.enemy-pvp-not-enabled"));
                             return;
                         }

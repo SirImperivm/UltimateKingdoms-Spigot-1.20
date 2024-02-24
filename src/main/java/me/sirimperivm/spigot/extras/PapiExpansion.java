@@ -12,8 +12,6 @@ import me.sirimperivm.spigot.util.other.Strings;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.List;
-
 @SuppressWarnings("all")
 public class PapiExpansion extends PlaceholderExpansion {
 
@@ -35,7 +33,7 @@ public class PapiExpansion extends PlaceholderExpansion {
 
     @Override
     public String getIdentifier() {
-        return "ukingdoms";
+        return "ukg";
     }
 
     @Override
@@ -50,144 +48,124 @@ public class PapiExpansion extends PlaceholderExpansion {
 
     @Override
     public String onRequest(OfflinePlayer player, String param) {
-        String toReturn = "&4Placeholder ERROR!";
+        String path = "other.placeholders.";
+        String toReturn = "";
 
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-level.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-level"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String level = db.getKingdoms().getKingdomLevel(playerKingdom.getKingdomName());
+
+                toReturn = level;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-next-level"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String level = db.getKingdoms().getKingdomLevel(playerKingdom.getKingdomName());
+                String nextLevel = config.getSettings().getString("kingdoms.levels." + level + ".rankup.next");
+
+                toReturn = nextLevel;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-gold-amount"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String goldAmount = String.valueOf(playerKingdom.getGoldAmount());
+
+                toReturn = goldAmount;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-gold-amount-formatted"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String goldAmount = Strings.formatNumber(playerKingdom.getGoldAmount(), config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+
+                toReturn = goldAmount;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-next-level-cost"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String level = db.getKingdoms().getKingdomLevel(playerKingdom.getKingdomName());
+                String nextLevel = config.getSettings().getString("kingdoms.levels." + level + ".rankup.next");
+                String nextLevelCost = String.valueOf(config.getSettings().getDouble("kingdoms.levels" + level + ".rankup.cost"));
+
+                toReturn = nextLevelCost;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-next-level-cost-formatted"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+                String level = db.getKingdoms().getKingdomLevel(playerKingdom.getKingdomName());
+                String nextLevel = config.getSettings().getString("kingdoms.levels." + level + ".rankup.next");
+                String nextLevelCost = Strings.formatNumber(config.getSettings().getDouble("kingdoms.levels" + level + ".rankup.cost"), config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+
+                toReturn = nextLevelCost;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-name"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
+
+                toReturn = playerKingdom.getKingdomName();
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-role"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                int kingdomRoleId = db.getPlayers().getKingdomRole(online);
+                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+
+                toReturn = kingdomRole;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-role-tag"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                int kingdomRoleId = db.getPlayers().getKingdomRole(online);
+                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+                String kingdomRoleTag = config.getTranslatedString("kingdoms.roles." + kingdomRole + ".chat-tag");
+
+                toReturn = kingdomRoleTag;
+            }
+        }
+
+        if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-tag"))) {
+            toReturn = Colors.translateString("&cN/A");
+            Player online = (Player) player;
+            if (db.getPlayers().existsPlayerData(online)) {
+                Kingdom playerKingdom = mod.getPlayerKingdom(online);
                 String kingdomName = playerKingdom.getKingdomName();
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
+                int kingdomRoleId = db.getPlayers().getKingdomRole(online);
+                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+                String kingdomRoleTag = config.getSettings().getString("kingdoms.roles." + kingdomRole + ".chat-tag");
 
-                toReturn = config.getTranslatedString("placeholders.kingdom-level.return-format".replace("{0}", String.valueOf(kingdomLevel)));
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-next-level.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
-                String nextLevel = config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".rankup.next");
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-next-level-return-format".replace("{0}", nextLevel));
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-gold-amount.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                double goldAmount = db.getKingdoms().getGoldAmount(kingdomName);
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-gold-amount.return-format").replace("{0}", String.valueOf(goldAmount));
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-gold-amount-formatted.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                int format_size = config.getSettings().getInt("other.strings.number-formatter.format-size");
-                List<String> associations = config.getSettings().getStringList("other.strings.number-formatter.associations");
-                String goldAmount = Strings.formatNumber(db.getKingdoms().getGoldAmount(kingdomName), format_size, associations);
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-gold-amount-formatted.return-format").replace("{0}", goldAmount);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-nextrankup-cost.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
-                double rankupCost = config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost");
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-nextrankup-cost.return-format").replace("{0}", String.valueOf(rankupCost));
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-nextrankup-cost-formatted.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomName);
-                int format_size = config.getSettings().getInt("other.strings.number-formatter.format-size");
-                List<String> associations = config.getSettings().getStringList("other.strings.number-formatter.associations");
-                String rankupCost = Strings.formatNumber(config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost"), format_size, associations);
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-nextrankup-cost-formatted.return-format").replace("{0}", rankupCost);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-name.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-name.return-format").replace("{0}", kingdomName);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-role.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
-                String roleName = db.getRoles().getRoleName(roleId);
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-role.return-format").replace("{0}", roleName);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-role-tag.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
-                String roleName = db.getRoles().getRoleName(roleId);
-                String roleTag = config.getTranslatedString("kingdoms.roles." + roleName + ".chat-tag");
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-role-tag.return-format").replace("{0}", roleTag);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
-            }
-        }
-
-        if (param.equalsIgnoreCase(config.getSettings().getString("placeholders.kingdom-tag.placeholder"))) {
-            Player onlinePlayer = (Player) player;
-            if (db.getPlayers().existsPlayerData(onlinePlayer)) {
-                Kingdom playerKingdom = mod.getPlayerKingdom(onlinePlayer);
-                String kingdomName = playerKingdom.getKingdomName();
-                int roleId = db.getPlayers().getKingdomRole(onlinePlayer);
-                String roleName = db.getRoles().getRoleName(roleId);
-                String roleTag = config.getTranslatedString("kingdoms.roles." + roleName + ".chat-tag");
-
-                toReturn = config.getTranslatedString("placeholders.kingdom-tag.return-format").replace("{0}", roleTag + kingdomName);
-            } else {
-                toReturn = Colors.translateString("&4N/A");
+                toReturn = Colors.translateString(kingdomRoleTag + kingdomName);
             }
         }
 

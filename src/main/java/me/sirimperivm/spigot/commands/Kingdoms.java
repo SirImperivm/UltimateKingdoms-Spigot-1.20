@@ -180,7 +180,7 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
                             return true;
                         } else {
-                            int page = Integer.parseInt(a[0]);
+                            int page = Integer.parseInt(a[1]);
                             mod.sendKingdomsList(s, page);
                         }
                     } else {
