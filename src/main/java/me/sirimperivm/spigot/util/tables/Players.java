@@ -53,32 +53,33 @@ public class Players {
     }
 
     private void createTable() {
-        if (!tableExists()) {
-            String query = isMysql ?
-                    "CREATE TABLE " + table + "(" +
-                            "`player_id` INT AUTO_INCREMENT NOT NULL," +
-                            "`player_name` VARCHAR(40) NOT NULL," +
-                            "`player_uuid` VARCHAR(255) NOT NULL," +
-                            "`kingdom_id` INT NOT NULL," +
-                            "`kingdom_role` INT NOT NULL," +
-                            "PRIMARY KEY (player_id)," +
-                            "CONSTRAINT `pk_kid` FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE," +
-                            "CONSTRAINT `pr_rid` FOREIGN KEY (kingdom_role) REFERENCES roles(kingdom_role) ON DELETE CASCADE ON UPDATE CASCADE" +
-                            ")" :
-                    "CREATE TABLE " + table + "(" +
-                            "`player_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "`player_name` VARCHAR(40) NOT NULL," +
-                            "`player_uuid` VARCHAR(255) NOT NULL," +
-                            "`kingdom_id` INTEGER NOT NULL," +
-                            "`kingdom_role` INT NOT NULL" +
-                            ")";
-            try {
-                PreparedStatement state = conn.prepareStatement(query);
-                state.executeUpdate();
-            } catch (SQLException e) {
-                log.fail("[UltimateKingdoms] Impossibile creare la tabella " + tableName + "!");
-                e.printStackTrace();
-            }
+        String query = isMysql ?
+                "CREATE TABLE IF NOT EXISTS " + table + "(" +
+                        "`player_id` INT AUTO_INCREMENT NOT NULL, " +
+                        "`player_name` VARCHAR(40) NOT NULL, " +
+                        "`player_uuid` VARCHAR(255) NOT NULL, " +
+                        "`kingdom_id` INT NOT NULL, " +
+                        "`kingdom_role` INT NOT NULL, " +
+                        "PRIMARY KEY (player_id), " +
+                        "FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                        "FOREIGN KEY (kingdom_role) REFERENCES roles(kingdom_role) ON UPDATE CASCADE ON DELETE CASCADE" +
+                        ")" :
+                "CREATE TABLE IF NOT EXISTS " + table + "(" +
+                        "`player_id` INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "`player_name` VARCHAR(40) NOT NULL, " +
+                        "`player_uuid` VARCHAR(255) NOT NULL, " +
+                        "`kingdom_id` INTEGER NOT NULL, " +
+                        "`kingdom_role` INTEGER NOT NULL, " +
+                        "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
+                        "FOREIGN KEY(kingdom_role) REFERENCES roles(kingdom_role) ON UPDATE CASCADE ON DELETE CASCADE" +
+                        ")";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile creare la tabella " + tableName + "!");
+            e.printStackTrace();
         }
     }
 

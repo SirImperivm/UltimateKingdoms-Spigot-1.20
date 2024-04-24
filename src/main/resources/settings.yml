@@ -8,6 +8,51 @@ storage:
     dbname: "ultimatekingdoms"
     options: ""
 
+settings:
+  default-chunk-size: 20
+  chunks-border:
+    min-y-view: 5
+    max-y-view: 10
+    spawn:
+      delay: 0
+      interval: 12
+    offsets:
+      x: 1.0
+      y: 1.0
+      z: 1.0
+    unclaimed-particle:
+      has-color: true
+      name: "REDSTONE"
+      color:
+        r: 0
+        g: 255
+        b: 0
+      amount: 1
+    yourclaim-cantbuild-particle:
+      has-color: true
+      name: "REDSTONE"
+      color:
+        r: 255
+        g: 172
+        b: 0
+      amount: 1
+    yourclaim-canbuild-particle:
+      has-color: true
+      name: "REDSTONE"
+      color:
+        r: 172
+        g: 0
+        b: 255
+      amount: 1
+    claimed-particle:
+      has-color: true
+      name: "REDSTONE"
+      color:
+        r: 255
+        g: 0
+        b: 0
+      amount: 1
+
 other:
   strings:
     number-formatter:
@@ -17,7 +62,7 @@ other:
         - "1000000000.0-B"
         - "1000000000000.0-T"
         - "1000000000000000.0-Q"
-      format-size: 5
+      format-size: 3
   placeholders:
     kingdom-level: user_kingdom_level # Placeholder: %ukg_user_kingdom_level%
     kingdom-next-level: user_kingdom_next_level # Placeholder: %ukg_user_kingdom_next_level%
@@ -52,15 +97,61 @@ guis:
       enabled: false
       material: RED_STAINED_GLASS_PANE
       name: "&c*"
+      glowing: false
       lore: []
       model: 0
     items: {}
+  kingdom-roles:
+    title: "->G:9C12F5/&lPannello Ruoli/->G:D0B637"
+    rows: 1
+    filler:
+      enabled: true
+      material: RED_STAINED_GLASS_PANE
+      name: "&4*"
+      glowing: false
+      lore: []
+      model: 0
+    item-creator:
+      material: STONE_BUTTON
+      name: "->S:FF9C26/Permessi {0}s"
+      glowing: true
+      lore:
+        - "&bQui modificherai i permessi"
+        - "&bdei/delle/degli {0} del tuo regno."
+  kingdom-roles-editing:
+    title: "->G:9C12F5/&lModifica ruolo/->G:D0B637"
+    rows: 1
+    filler:
+      enabled: true
+      material: BLUE_STAINED_GLASS_PANE
+      name: "&1*"
+      glowing: false
+      lore: []
+      model: 0
+    item-creator:
+      has-permission:
+        material: LIME_WOOL
+        name: "->S:FF9C26/{0}"
+        glowing: true
+        lore:
+          - "&bRuolo: {0}"
+          - "&bPermesso: {1}"
+          - "&bStato: &aAttivo"
+      hasnt-permission:
+        material: RED_WOOL
+        name: "->S:FF9C26/{0}"
+        glowing: true
+        lore:
+          - "&bRuolo: {0}"
+          - "&bPermesso: {1}"
+          - "&bStato: &cDisattivo"
 
 kingdoms:
   levels:
     level-0:
       max-members: 6
       max-claimable-chunks: 12
+      title: "0"
       rankup:
         allowed: true
         cost: 15000.0
@@ -68,6 +159,7 @@ kingdoms:
     level-1:
       max-members: 15
       max-claimable-chunks: 24
+      title: "1"
       rankup:
         allowed: true
         cost: 52000.0
@@ -75,6 +167,7 @@ kingdoms:
     level-2:
       max-members: 24
       max-claimable-chunks: 48
+      title: "2"
       rankup:
         allowed: true
         cost: 125000.0
@@ -82,6 +175,7 @@ kingdoms:
     level-3:
       max-members: 30
       max-claimable-chunks: 64
+      title: "3"
       rankup:
         allowed: false
   roles:
@@ -105,6 +199,8 @@ kingdoms:
         manage-roles: true
         deposit: true
         expand-territory: true
+        show-territories: true
+        release-all-territories: true
         disband: true
     officer:
       id: 2
@@ -118,7 +214,7 @@ kingdoms:
         use-containers: true
         open-doors: true
         invite-players: true
-        expel-players: false
+        expel-players: true
         can-rankup-kingdom: true
         use-warps: true
         set-warps: true
@@ -126,6 +222,8 @@ kingdoms:
         manage-roles: false
         deposit: true
         expand-territory: true
+        show-territories: true
+        release-all-territories: false
         disband: false
     moderator:
       id: 3
@@ -147,6 +245,8 @@ kingdoms:
         manage-roles: false
         deposit: true
         expand-territory: false
+        show-territories: false
+        release-all-territories: false
         disband: false
     recruit:
       id: 4
@@ -168,6 +268,8 @@ kingdoms:
         manage-roles: false
         deposit: false
         expand-territory: false
+        show-territories: false
+        release-all-territories: false
         disband: false
   default-settings:
     friendly-fire: true
@@ -180,11 +282,19 @@ messages:
       command: "&8[&c!&8] &cNon hai accesso a questo comando."
       action: "&8[&c!&8] &cNon hai accesso a quest'azione."
     no-console: "&8[&c!&8] &cQuesto comando è solo per utenti in gioco."
+  admin:
+    plugin:
+      reloaded: "&8[&a!&8] &aPlugin ricaricato con successo."
+    bypass:
+      enabled: "&8[&e!&8] &eSistema bypass territori &aAttivato&e."
+      disabled: "&8[&e!&8] &eSistema bypass territori &cDisattivato&e."
   kingdoms:
     general:
       error:
         user-offline: "&8[&c!&8] &cL'utente scelto è offline o non esiste."
         page-not-found: "&8[&c!&8] &cPagina scelta non trovata."
+        kingdom-not-exists: "&8[&c!&8] &cIl regno scelto non esiste."
+        prevent-theif: "&8[&c!&8] &cNon puoi piazzare o rimuovere contenitori nei bordi del claim. Devi avere il permesso \"use-containers\"."
     creation:
       error:
         already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."
@@ -278,20 +388,55 @@ messages:
       error:
         friendly-fire-not-enabled: "&8[&c!&8] &cNei territori non è ammesso il Friendly Fire."
         enemy-pvp-not-enabled: "&8[&c!&8] &cNon puoi colpire i membri di questo territorio."
+    show-chunks:
+      info:
+        actived: "&8[&e!&8] &eVisualizzazione chunk &aAttivata&e."
+        disabled: "&8[&e!&8] &eVisualizzazione chunk &cDisattivata&e."
+    claims-list:
+      info:
+        claims-count: "&8[&e!&8] &eIl tuo regno ha &6{0}&e claims."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon hai accesso alla lista zone nel tuo regno."
+    unclaim-all:
+      success:
+        removed: "&8[&a!&8] &aTutti i chunk sono stati rilasciati correttamente."
+      info:
+        warning: "&8[&e!&8] &eAttenzione confermando questo comando con &6/kg unclaimall-confirm &erilascerai tutti i territori ottenuti nel tuo regno, e sarà possibile griffarli, hai &610&e secondi per confermare..."
+        expired: "&8[&e!&8] &eTempo scaduto alla conferma di rilascio claims."
+      error:
+        already-set: "&8[&c!&8] &cHai già eseguito una richiesta del genere, confermala con &4/kg unclaimall-confirm&c o aspetta ancora qualche secondo che finisca."
+        not-set: "&8[&c!&8] &cNon hai nessuna conferma da eseguire."
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon puoi rilasciare tutti i territori del tuo regno."
+    permissions-gui:
+      info:
+        permission-updated: "&8[&e!&8] &ePermesso modificato."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon puoi aprire il pannello dei permessi del tuo regno."
 
 helps:
   commands:
     kingdoms:
-      - "&5-/kg accept &7- &5Accetti l'invito in un regno."
-      - "&5-/kg claim &7- &5Ottieni un chunk 16x16 di territorio per il tuo regno."
-      - "&5-/kg deposit &7- &5Apre la gui per depositare l'oro nel tuo regno."
-      - "&5-/kg disband &7- &5Elimini il tuo regno."
-      - "&5-/kg unclaim &7- &5Rilasci un chunk 16x16 di territorio del tuo regno."
-      - "&5-/kg list &d[pagina] &7- &5Mostra la lista dei regni creati."
-      - "&5-/kg create &d<nome> &7- &5Crei un regno."
-      - "&5-/kg expel &d<nome> &7- &5Espelli una persona dal tuo regno."
-      - "&5-/kg invite &d<nome> &7- &5Inviti una persona nel tuo regno."
-      - "&5-/kg changerole &d<nomeplayer> <nomeruolo> &7- &5Imposti un ruolo ad un utente del tuo regno."
+      - "&3/&bkg accept &7- &3Accetti l'invito in un regno."
+      - "&3/&bkg claim &7- &3Ottieni un chunk 16x16 di territorio per il tuo regno."
+      - "&3/&bkg claims &7- &3Mostra quanti chunk hai claimato."
+      - "&3/&bkg deposit &7- &3Apre la gui per depositare l'oro nel tuo regno."
+      - "&3/&bkg disband &7- &3Elimini il tuo regno."
+      - "&3/&bkg showchunks &7- &3Mostra lo stato dei chunk."
+      - "&3/&bkg unclaim &7- &3Rilasci un chunk 16x16 di territorio del tuo regno."
+      - "&3/&bkg unclaimall &7- &3Rilasci tutti i territori ottenuti."
+      - "&3/&bkg permissions &7- &3Apre la gui dei permessi nel tuo regno."
+      - "&3/&bkg list &a[pagina] &7- &3Mostra la lista dei regni creati."
+      - "&3/&bkg info &a<nome> &7- &3Mostra le info del regno scelto."
+      - "&3/&bkg create &a<nome> &7- &3Crei un regno."
+      - "&3/&bkg expel &a<nome> &7- &3Espelli una persona dal tuo regno."
+      - "&3/&bkg invite &a<nome> &7- &3Inviti una persona nel tuo regno."
+      - "&3/&bkg changerole &a<nomeplayer> <nomeruolo> &7- &3Imposti un ruolo ad un utente del tuo regno."
+    admin:
+      - "&4/&ckga reload &7- &4Ricarica il config del plugin."
+      - "&4/&ckga bypass &7- &4Bypassi il sistema di territori."
 
 formats-lists:
   kingdoms-list:
@@ -300,6 +445,22 @@ formats-lists:
     spacer: "&r"
     line: "->S:FF5733/&l{0}: ->S:EF6FF7/{1} &7membri, ->S:F7DC6F/{2} &7oro."
     page: "&9Pagina: &7{0}"
+    footer: "->G:444444/&m                              /->G:666666"
+  kingdoms-info:
+    header: "->G:444444/&m                              /->G:666666"
+    title: "->S:F7DC6F/&lKingdom Info:"
+    spacer: "&r"
+    lines:
+      - "->S:A054E4/&lNome: &7{0}"
+      - "->S:A054E4/&lLivello: &7{1}"
+      - "->S:A054E4/&lOro: &7{2}"
+      - "->S:A054E4/&lMembri: &7{3}"
+    footer: "->G:444444/&m                              /->G:666666"
+  kingdoms-claims:
+    header: "->G:444444/&m                              /->G:666666"
+    title: "->S:F7DC6F/&lLista Claims:"
+    spacer: "&r"
+    line: "->S:FF5733/&lClaim situato in: &7Mondo: ->S:EF6FF7/{0}&7, X: ->S:EF6FF7/{1}&7, Y: ->S:EF6FF7/{2}&7, Z: ->S:EF6FF7/{3}&7."
     footer: "->G:444444/&m                              /->G:666666"
 
 permissions:
@@ -313,8 +474,17 @@ permissions:
       expel: kingdoms.use
       change-role: kingdoms.use
       claim: kingdoms.use
+      claims: kingdoms.use
       unclaim: kingdoms.use
+      unclaimall: kingdoms.use
+      showchunks: kingdoms.use
+      permissions: kingdoms.use
       deposit: kingdoms.use
       list: kingdoms.use
+      info: kingdoms.use
+    admin:
+      main: kingdoms.admin
+      reload: kingdoms.admin
+      bypass: kingdoms.admin
   events:
     test-string: kingdoms.testring

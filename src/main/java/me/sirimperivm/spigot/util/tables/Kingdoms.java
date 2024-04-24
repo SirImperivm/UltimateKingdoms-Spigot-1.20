@@ -297,4 +297,22 @@ public class Kingdoms {
         }
         return list;
     }
+
+    public List<String> getKingdomPlayers(int kingdomId) {
+        List<String> list = new ArrayList<>();
+        String query = "SELECT player_name FROM players WHERE players.kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getString("player_name"));
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei player per il regno " + getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return list;
+    }
 }

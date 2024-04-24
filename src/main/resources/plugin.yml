@@ -9,3 +9,6 @@ commands:
   kg:
     aliases:
       - kingdoms
+  kga:
+    aliases:
+      - kingdomsadmin

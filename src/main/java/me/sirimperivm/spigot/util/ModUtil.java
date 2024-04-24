@@ -4,11 +4,17 @@ import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.entities.Chunk;
 import me.sirimperivm.spigot.entities.Gui;
 import me.sirimperivm.spigot.entities.Kingdom;
+import me.sirimperivm.spigot.util.colors.Colors;
 import me.sirimperivm.spigot.util.other.Logger;
 import me.sirimperivm.spigot.util.other.Strings;
-import org.bukkit.Bukkit;
+import org.bukkit.*;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
@@ -24,6 +30,10 @@ public class ModUtil {
 
     private HashMap<String, Kingdom> kingdomHash;
     private HashMap<Player, Kingdom> kingdomInvites;
+    private HashMap<Player, Integer> rolesPermissionsEditing;
+    private List<Player> chunksBordersPlayerList;
+    private List<Player> bypassPlayerList;
+    private List<Player> releaseAllCooldown;
 
     public ModUtil(Main plugin) {
         this.plugin = plugin;
@@ -31,6 +41,12 @@ public class ModUtil {
 
         config = plugin.getCM();
         db = plugin.getDB();
+
+        chunksBordersPlayerList = new ArrayList<>();
+        refreshChunksBordersForPlayers();
+        rolesPermissionsEditing = new HashMap<>();
+        bypassPlayerList = new ArrayList<>();
+        releaseAllCooldown = new ArrayList<>();
     }
 
     public void setupSettings() {
@@ -77,6 +93,16 @@ public class ModUtil {
                 }
             }
         }
+    }
+
+    public void refreshChunksBordersForPlayers() {
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player target : chunksBordersPlayerList) {
+                if (Bukkit.getOnlinePlayers().contains(target)) {
+                    visualizeChunkBorders(target);
+                }
+            }
+        }, config.getSettings().getLong("settings.chunks-border.spawn.delay"), config.getSettings().getLong("settings.chunks-border.spawn.interval"));
     }
 
     public void sendKingdomsList(CommandSender target, int page) {
@@ -128,6 +154,85 @@ public class ModUtil {
             target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.footer"));
         }
     }
+    public void sendKingdomInfo(CommandSender target, String kingdomName) {
+        int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
+        if (kingdomId != 0) {
+            String messagePath = "formats-lists.kingdoms-info";
+
+            List<String> playersList = db.getKingdoms().getKingdomPlayers(kingdomId);
+            StringBuilder playersText = new StringBuilder();
+            for (String playerName : playersList) {
+                if (!playersList.get(playersList.size() - 1).equals(playerName)) {
+                    Player player = Bukkit.getPlayerExact(playerName);
+                    if (player != null) {
+                        playersText.append("&a" + playerName + "->S:A054E4/,&r");
+                    } else {
+                        playersText.append("&7" + playerName + "->S:A054E4/,&r");
+                    }
+                } else {
+                    Player player = Bukkit.getPlayerExact(playerName);
+                    if (player != null) {
+                        playersText.append("&a" + playerName + "->S:A054E4/.&r");
+                    } else {
+                        playersText.append("&7" + playerName + "->S:A054E4/.&r");
+                    }
+                }
+            }
+
+            String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+            String levelTitle = config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".title");
+            double goldAmount = db.getKingdoms().getGoldAmount(kingdomId);
+            String formattedGoldAmount = Strings.formatNumber(goldAmount, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+
+            target.sendMessage(config.getTranslatedString(messagePath + ".header"));
+            target.sendMessage(config.getTranslatedString(messagePath + ".title"));
+            target.sendMessage(config.getTranslatedString(messagePath + ".spacer"));
+            for (String line : config.getSettings().getStringList(messagePath + ".lines")) {
+                target.sendMessage(Colors.translateString(line
+                        .replace("{0}", kingdomName)
+                        .replace("{1}", Colors.translateString(levelTitle))
+                        .replace("{2}", Colors.translateString(formattedGoldAmount))
+                        .replace("{3}", Colors.translateString(playersText.toString()))
+                ));
+            }
+            target.sendMessage(config.getTranslatedString(messagePath + ".spacer"));
+            target.sendMessage(config.getTranslatedString(messagePath + ".footer"));
+        } else {
+            target.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.kingdom-not-exists"));
+        }
+    }
+
+    public void sendKingdomsClaims(Player target) {
+        if (db.getPlayers().existsPlayerData(target)) {
+            if (hasPermission(target, "show-territories")) {
+                int kingdomId = db.getPlayers().getKingdomId(target);
+                HashMap<Integer, List<String>> achievedChunksData = db.getChunks().achieveChunksData(kingdomId);
+
+                target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.header"));
+                target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.title"));
+                target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.spacer"));
+                for (int chunkId : achievedChunksData.keySet()) {
+                    List<String> chunksData = achievedChunksData.get(chunkId);
+                    String worldName = chunksData.get(0);
+                    String X = chunksData.get(1);
+                    String Y = chunksData.get(3);
+                    String Z = chunksData.get(5);
+                    target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.line")
+                            .replace("{0}", worldName)
+                            .replace("{1}", X)
+                            .replace("{2}", Y)
+                            .replace("{3}", Z)
+                    );
+                }
+                target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.spacer"));
+                target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-claims.footer"));
+            } else {
+                target.sendMessage(config.getTranslatedString("messages.kingdoms.claims-list.error.hasnt-permission"));
+            }
+        } else {
+            target.sendMessage(config.getTranslatedString("messages.kingdoms.claims-list.error.not-in-a-kingdom"));
+        }
+    }
 
     public void invitePlayerKingdom(Player sender, Player target, Kingdom kingdom) {
         if (!db.getPlayers().existsPlayerData(target)) {
@@ -153,6 +258,44 @@ public class ModUtil {
             }, 30*20L);
         } else {
             sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.already-have-one"));
+        }
+    }
+
+    public void unclaimAllChunks(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "release-all-territories")) {
+                if (!releaseAllCooldown.contains(player)) {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.warning"));
+                    releaseAllCooldown.add(player);
+
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (releaseAllCooldown.contains(player)) {
+                                releaseAllCooldown.remove(player);
+                                player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.expired"));
+                            }
+                        }
+                    }.runTaskLater(plugin, 20L * 10L);
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.already-set"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void unclaimAllConfirm(Player player) {
+        if (releaseAllCooldown.contains(player)) {
+            int kingdomId = db.getPlayers().getKingdomId(player);
+            db.getChunks().truncateTable(kingdomId);
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.success.removed"));
+            releaseAllCooldown.remove(player);
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.not-set"));
         }
     }
 
@@ -377,13 +520,254 @@ public class ModUtil {
     public void sendDepositGui(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "deposit")) {
-                Gui depositGui = new Gui(plugin, "kingdom-deposit");
-                depositGui.sendGui(player);
+                Gui gui = new Gui(plugin, "kingdom-deposit", createItemsList("guis.kingdom-deposit"));
+                gui.sendGui(player);
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.hasnt-permission"));
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void sendMainPermissionsGui(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "manage-roles")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+                int kingdomRoleId = db.getPlayers().getKingdomRole(player);
+                int kingdomRoleWeight = db.getRoles().getRoleWeight(kingdomRoleId);
+                List<Integer> rolesList = db.getRoles().getRolesList();
+                HashMap<Integer, ItemStack> itemsList = new HashMap<Integer, ItemStack>();
+
+                int rolesCount = rolesList.size()-1;
+                int slot=0;
+                for (Integer roleId : rolesList) {
+                    int roleWeight = db.getRoles().getRoleWeight(roleId);
+                    if (kingdomRoleWeight>roleWeight) {
+                        String roleName = db.getRoles().getRoleName(roleId).substring(0, 1).toUpperCase()+db.getRoles().getRoleName(roleId).substring(1);
+
+                        String path = "guis.kingdom-roles.item-creator";
+                        ItemStack material = new ItemStack(Material.getMaterial(config.getSettings().getString(path + ".material")));
+                        ItemMeta meta = material.getItemMeta();
+                        boolean glowing = config.getSettings().getBoolean(path + ".glowing");
+                        String displayName = config.getSettings().getString(path + ".name");
+                        if (!displayName.equalsIgnoreCase("null") && !displayName.equalsIgnoreCase("") && !displayName.equals(null)) {
+                            displayName = displayName.replace("{0}", roleName);
+                            meta.setDisplayName(Colors.translateString(displayName));
+                        }
+                        if (glowing){
+                            meta.addEnchant(Enchantment.LURE, 0, false);
+                            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                        }
+                        List<String> lore = new ArrayList<>();
+                        for (String line : config.getSettings().getStringList(path + ".lore")) {
+                            lore.add(Colors.translateString(line
+                                    .replace("{0}", roleName)
+                            ));
+                        }
+                        meta.setLore(lore);
+                        meta.setCustomModelData(roleId);
+                        material.setItemMeta(meta);
+
+                        itemsList.put(slot, material);
+                        slot++;
+                    }
+                }
+
+                Gui gui = new Gui(plugin, "kingdom-roles", itemsList);
+                int rows = config.getSettings().getInt("guis.kingdom-roles.rows");
+                if (rolesCount < 10) {
+                    rows = 1;
+                } else if (rolesCount > 10 && rolesCount < 19) {
+                    rows = 2;
+                } else if (rolesCount > 19 && rolesCount < 28) {
+                    rows = 3;
+                } else if (rolesCount > 28 && rolesCount < 37) {
+                    rows = 4;
+                } else if (rolesCount > 37 && rolesCount < 46) {
+                    rows = 5;
+                } else {
+                    rows = 6;
+                }
+                gui.setRows(rows);
+                gui.sendGui(player);
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.error.not-in-a-kingdom"));
+        }
+    }
+
+    private HashMap<Integer, ItemStack> createItemsList(String guiPosition) {
+        HashMap<Integer, ItemStack> itemsList = new HashMap<>();
+        for (String key : config.getSettings().getConfigurationSection(guiPosition + ".items").getKeys(false)) {
+            String path = guiPosition + ".items." + key;
+
+            List<Integer> slots = config.getSettings().getIntegerList(path + ".slots");
+            boolean glowing = config.getSettings().getBoolean(path + ".glowing");
+
+            ItemStack is = new ItemStack(Material.getMaterial(config.getSettings().getString(path + ".material")));
+            ItemMeta meta = is.getItemMeta();
+            String displayName = config.getSettings().getString(path + ".name");
+            if (!displayName.equalsIgnoreCase("null") && !displayName.equalsIgnoreCase("") && !displayName.equals(null)) meta.setDisplayName(Colors.translateString(displayName));
+            meta.setCustomModelData(config.getSettings().getInt(path + ".model"));
+            if (glowing) {
+                meta.addEnchant(Enchantment.LURE, 0, false);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            List<String> lore = new ArrayList<>();
+            for (String line : config.getSettings().getStringList(path + ".lore")) {
+                lore.add(Colors.translateString(line));
+            }
+            meta.setLore(lore);
+            is.setItemMeta(meta);
+
+            for (Integer slot : slots) {
+                itemsList.put(slot, is);
+            }
+        }
+        return itemsList;
+    }
+
+    public HashMap<Integer, ItemStack> createRolesEditingItemsList(int kingdomId, int roleId) {
+        HashMap<Integer, ItemStack> itemsList = new HashMap<>();
+        String roleName = db.getRoles().getRoleName(roleId);
+
+        int slot = 0;
+        for (String permName : db.getPermissions().getActualsPermissionsList()) {
+            int permId = db.getPermissions().getPermId(permName);
+            boolean hasPermission = db.getPermissionsRoles().containsRole(kingdomId, roleId, permId);
+            String path = hasPermission ? "guis.kingdom-roles-editing.item-creator.has-permission" : "guis.kingdom-roles-editing.item-creator.hasnt-permission";
+
+            boolean glowing = config.getSettings().getBoolean(path + ".glowing");
+            ItemStack material = new ItemStack(Material.getMaterial(config.getSettings().getString(path + ".material")));
+            ItemMeta meta = material.getItemMeta();
+            String displayName = config.getSettings().getString(path + ".name");
+            if (!displayName.equalsIgnoreCase("null") && !displayName.equals("") && !displayName.equals(null)){
+                displayName = displayName.replace("{0}", Strings.capitalize(permName));
+                meta.setDisplayName(Colors.translateString(displayName));
+            }
+            if (glowing) {
+                meta.addEnchant(Enchantment.LURE, 0, false);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            List<String> lore = new ArrayList<>();
+            for (String line : config.getSettings().getStringList(path + ".lore")) {
+                lore.add(Colors.translateString(line
+                        .replace("{0}", Strings.capitalize(roleName))
+                        .replace("{1}", permName)
+                ));
+            }
+            meta.setLore(lore);
+            meta.setCustomModelData(permId);
+            material.setItemMeta(meta);
+
+            itemsList.put(slot, material);
+            slot++;
+        }
+
+        return itemsList;
+    }
+
+    public void visualizeChunkBorders(Player target) {
+        Location loc = target.getLocation();
+        Chunk chunk = new Chunk(plugin, target, loc);
+        World world = loc.getWorld();
+
+        int chunkMinX = chunk.getMinX();
+        int chunkMaxX = chunk.getMaxX();
+
+        int playerY = loc.getBlockY();
+        int startY = playerY - config.getSettings().getInt("settings.chunks-border.min-y-view");
+        int endY = playerY + config.getSettings().getInt("settings.chunks-border.max-y-view");
+
+        int chunkMinZ = chunk.getMinZ();
+        int chunkMaxZ = chunk.getMaxZ();
+
+        double offsetX = config.getSettings().getDouble("settings.chunks-border.offsets.x");
+        double offsetY = config.getSettings().getDouble("settings.chunks-border.offsets.y");
+        double offsetZ = config.getSettings().getDouble("settings.chunks-border.offsets.z");
+
+        List<Location> locationList = new ArrayList<>();
+
+        for (int y=startY; y<endY; y++) {
+            for (int x = chunkMinX; x < chunkMaxX; x++) {
+                Location bottomLocation = new Location(world, (double) x + offsetX, (double) y + offsetY, (double) chunkMinZ + offsetZ);
+                locationList.add(bottomLocation);
+            }
+            for (int x = chunkMinX; x < chunkMaxX + 1; x++) {
+                Location topLocation = new Location(world, (double) x + offsetX, (double) y + offsetY, (double) chunkMaxZ + offsetZ);
+                locationList.add(topLocation);
+            }
+            for (int z = chunkMinZ; z < chunkMaxZ; z++) {
+                Location rightLocation = new Location(world, (double) chunkMinX + offsetX, (double) y + offsetY, (double) z + offsetZ);
+                locationList.add(rightLocation);
+            }
+            for (int z = chunkMinZ; z < chunkMaxZ; z++) {
+                Location leftLocation = new Location(world, (double) chunkMaxX + offsetX, (double) y + offsetY, (double) z + offsetZ);
+                locationList.add(leftLocation);
+            }
+        }
+
+        if (isInClaimedChunk(chunk)) {
+            int chunkKingdomId = db.getChunks().kingdomId(chunk);
+            boolean yourClaim = false;
+            if (db.getPlayers().existsPlayerData(target)) {
+                int playerKingdomId = db.getPlayers().getKingdomId(target);
+                if (playerKingdomId == chunkKingdomId) yourClaim = true;
+            }
+            if (yourClaim) {
+                for (Location spawnLocation : locationList) {
+                    if (spawnLocation.getBlock().getType() == Material.AIR) {
+                        if (hasPermission(target, "use-containers")) {
+                            Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.yourclaim-canbuild-particle.name"));
+                            int amount = config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.amount");
+                            if (config.getSettings().getBoolean("settings.chunks-border.yourclaim-canbuild-particle.has-color")) {
+                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.r"), config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.g"), config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.b")), 1.0F);
+                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
+                            } else {
+                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
+                            }
+                        } else {
+                            Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.yourclaim-cantbuild-particle.name"));
+                            int amount = config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.amount");
+                            if (config.getSettings().getBoolean("settings.chunks-border.yourclaim-cantbuild-particle.has-color")) {
+                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.r"), config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.g"), config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.b")), 1.0F);
+                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
+                            } else {
+                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (Location spawnLocation : locationList) {
+                    if (spawnLocation.getBlock().getType() == Material.AIR) {
+                        Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.claimed-particle.name"));
+                        int amount = config.getSettings().getInt("settings.chunks-border.claimed-particle.amount");
+                        if (config.getSettings().getBoolean("settings.chunks-border.claimed-particle.has-color")) {
+                            Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.claimed-particle.color.r"), config.getSettings().getInt("settings.chunks-border.claimed-particle.color.g"), config.getSettings().getInt("settings.chunks-border.claimed-particle.color.b")), 1.0F);
+                            target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
+                        } else {
+                            target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
+                        }
+                    }
+                }
+            }
+        } else {
+            for (Location spawnLocation : locationList) {
+                if (spawnLocation.getBlock().getType() == Material.AIR) {
+                    Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.unclaimed-particle.name"));
+                    int amount = config.getSettings().getInt("settings.chunks-border.unclaimed-particle.amount");
+                    if (config.getSettings().getBoolean("settings.chunks-border.unclaimed-particle.has-color")) {
+                        Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.unclaimed-particle.color.r"), config.getSettings().getInt("settings.chunks-border.unclaimed-particle.color.g"), config.getSettings().getInt("settings.chunks-border.unclaimed-particle.color.b")), 1.0F);
+                        target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
+                    } else {
+                        target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
+                    }
+                }
+            }
         }
     }
 
@@ -419,5 +803,21 @@ public class ModUtil {
 
     public Logger getLog() {
         return log;
+    }
+
+    public HashMap<Player, Integer> getRolesPermissionsEditing() {
+        return rolesPermissionsEditing;
+    }
+
+    public List<Player> getChunksBordersPlayerList() {
+        return chunksBordersPlayerList;
+    }
+
+    public List<Player> getBypassPlayerList() {
+        return bypassPlayerList;
+    }
+
+    public List<Player> getReleaseAllCooldown() {
+        return releaseAllCooldown;
     }
 }

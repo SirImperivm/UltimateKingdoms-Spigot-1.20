@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("all")
@@ -46,16 +47,18 @@ public class Chunk {
         minY = world.getMinHeight();
         minZ = locZ;
 
-        while (minX%16!=0) {
+        int defaultChunkSize = config.getSettings().getInt("settings.default-chunk-size");
+
+        while (minX%defaultChunkSize!=0) {
             minX--;
         }
-        while (minZ%16!=0) {
+        while (minZ%defaultChunkSize!=0) {
             minZ--;
         }
 
-        maxX = minX+15;
+        maxX = minX+defaultChunkSize-1;
         maxY = world.getMaxHeight();
-        maxZ = minZ+15;
+        maxZ = minZ+defaultChunkSize-1;
     }
 
     public Chunk(Main plugin, Player player, Location loc) {
@@ -78,16 +81,18 @@ public class Chunk {
         minY = world.getMinHeight();
         minZ = playerZ;
 
-        while (minX%16!=0) {
+        int defaultChunkSize = config.getSettings().getInt("settings.default-chunk-size");
+
+        while (minX%defaultChunkSize!=0) {
             minX--;
         }
-        while (minZ%16!=0) {
+        while (minZ%defaultChunkSize!=0) {
             minZ--;
         }
 
-        maxX = minX+15;
+        maxX = minX+defaultChunkSize-1;
         maxY = world.getMaxHeight();
-        maxZ = minZ+15;
+        maxZ = minZ+defaultChunkSize-1;
 
         playerKingdom = mod.getPlayerKingdom(player);
         kingdomId = db.getPlayers().getKingdomId(player);
@@ -99,14 +104,27 @@ public class Chunk {
 
         List<Player> onlineKingdomPlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
         onlineKingdomPlayers.forEach(online -> {
-            online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-expanded")
-                    .replace("{0}", worldName)
-                    .replace("{1}", String.valueOf(minX))
-                    .replace("{2}", String.valueOf(minZ))
-                    .replace("{3}", String.valueOf(maxX))
-                    .replace("{4}", String.valueOf(maxZ))
-            );
+            if (mod.hasPermission(online, "show-territories")) {
+                online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-expanded")
+                        .replace("{0}", worldName)
+                        .replace("{1}", String.valueOf(minX))
+                        .replace("{2}", String.valueOf(minZ))
+                        .replace("{3}", String.valueOf(maxX))
+                        .replace("{4}", String.valueOf(maxZ))
+                );
+            }
         });
+    }
+
+    public boolean isInChunkWalls(Location loc) {
+        List<Location> walls = new ArrayList<>();
+        World world = loc.getWorld();
+
+        int blockX = loc.getBlockX();
+        int blockY = loc.getBlockY();
+        int blockZ = loc.getBlockZ();
+
+        return db.getChunks().isInChunkWalls(world.getName(), blockX, blockY, blockZ);
     }
 
     public void unclaimChunk(Chunk chunk) {
@@ -115,13 +133,15 @@ public class Chunk {
 
         List<Player> onlineKingdomPlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
         onlineKingdomPlayers.forEach(online -> {
-            online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-released")
-                    .replace("{0}", worldName)
-                    .replace("{1}", String.valueOf(minX))
-                    .replace("{2}", String.valueOf(minZ))
-                    .replace("{3}", String.valueOf(maxX))
-                    .replace("{4}", String.valueOf(maxZ))
-            );
+            if (mod.hasPermission(online, "show-territories")) {
+                online.sendMessage(config.getTranslatedString("messages.kingdoms.claims.info.territory-released")
+                        .replace("{0}", worldName)
+                        .replace("{1}", String.valueOf(minX))
+                        .replace("{2}", String.valueOf(minZ))
+                        .replace("{3}", String.valueOf(maxX))
+                        .replace("{4}", String.valueOf(maxZ))
+                );
+            }
         });
     }
 

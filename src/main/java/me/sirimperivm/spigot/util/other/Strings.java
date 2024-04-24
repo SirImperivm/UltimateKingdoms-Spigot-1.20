@@ -21,9 +21,6 @@ public class Strings {
 
         if (toReturn.length() >= format_size) {
             for (int i=0; i<format_size; i++) {
-                if (toReturn.charAt(i) == '.') {
-                    break;
-                }
                 sb.append(toReturn.charAt(i));
             }
 
@@ -54,9 +51,6 @@ public class Strings {
 
         if (toReturn.length() >= format_size) {
             for (int i=0; i<format_size; i++) {
-                if (toReturn.charAt(i) == '.') {
-                    break;
-                }
                 sb.append(toReturn.charAt(i));
             }
 
@@ -69,5 +63,9 @@ public class Strings {
 
         toReturn = toReturn+value_size;
         return toReturn;
+    }
+
+    public static String capitalize(String target) {
+        return target.substring(0, 1).toUpperCase()+target.substring(1);
     }
 }

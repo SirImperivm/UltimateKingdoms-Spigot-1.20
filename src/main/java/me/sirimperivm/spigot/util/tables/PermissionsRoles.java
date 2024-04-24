@@ -53,21 +53,23 @@ public class PermissionsRoles {
         if (!tableExists()) {
             String query = isMysql ?
                     "CREATE TABLE " + table + "(" +
-                            "`assoc_id` INT NOT NULL AUTO_INCREMENT," +
-                            "`kingdom_id` INT NOT NULL," +
-                            "`kingdom_role` INT NOT NULL," +
-                            "`kingdom_role` INT NOT NULL," +
-                            "`perm_id` INT NOT NULL," +
-                            "PRIMARY KEY (assoc_id)," +
-                            "CONSTRAINT `pe_ro_kiid` FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE," +
-                            "CONSTRAINT `pe_ro_roleid` FOREIGN KEY (kingdom_role) REFERENCES roles(kingdom_role)," +
-                            "CONSTRAINT `pe_ro_permid` FOREIGN KEY (perm_id) REFERENCES permissions(perm_id)" +
+                            "`assoc_id` INT NOT NULL AUTO_INCREMENT, " +
+                            "`kingdom_id` INT NOT NULL, " +
+                            "`kingdom_role` INT NOT NULL, " +
+                            "`perm_id` INT NOT NULL, " +
+                            "PRIMARY KEY (assoc_id), " +
+                            "FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY (kingdom_role) REFERENCES roles(kingdom_role), " +
+                            "FOREIGN KEY (perm_id) REFERENCES permissions(perm_id)" +
                             ")" :
                     "CREATE TABLE " + table + "(" +
-                            "`assoc_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "`kingdom_id` INTEGER NOT NULL," +
-                            "`kingdom_role` INTEGER NOT NULL," +
-                            "`perm_id` INTEGER NOT NULL" +
+                            "`assoc_id` INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "`kingdom_id` INTEGER NOT NULL, " +
+                            "`kingdom_role` INTEGER NOT NULL, " +
+                            "`perm_id` INTEGER NOT NULL, " +
+                            "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE, " +
+                            "FOREIGN KEY(kingdom_role) REFERENCES roles(kingdom_role), " +
+                            "FOREIGN KEY(perm_id) REFERENCES permissions(perm_id)" +
                             ")";
             try {
                 PreparedStatement state = conn.prepareStatement(query);
@@ -94,6 +96,21 @@ public class PermissionsRoles {
         }
     }
 
+    public void takePerm(int kingdomId, int roleId, int permId) {
+        String query = "DELETE FROM " + table + " WHERE kingdom_id=? AND kingdom_role=? AND perm_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            state.setInt(2, roleId);
+            state.setInt(3, permId);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile rimuovere il permesso " + permId + " dal ruolo " + roleId + " per il regno " + kingdomId + "!");
+            e.printStackTrace();
+        }
+    }
+
     public void truncateTable(int kingdomId) {
         String query = "DELETE FROM " + table + " WHERE kingdom_id=?";
 
@@ -107,4 +124,24 @@ public class PermissionsRoles {
         }
     }
 
+    public boolean containsRole(int kingdomId, int roleId, int permId) {
+        boolean value = false;
+        String query = "SELECT * FROM " + table + " WHERE kingdom_id=? AND kingdom_role=? AND perm_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            state.setInt(2, roleId);
+            state.setInt(3, permId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                value = true;
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile capire se il ruolo " + db.getRoles().getRoleName(roleId) + " nel regno " + db.getKingdoms().getKingdomName(kingdomId) + " abbia il permesso " + db.getPermissions().getPermName(permId) + "!");
+            e.printStackTrace();
+        }
+        return value;
+    }
 }

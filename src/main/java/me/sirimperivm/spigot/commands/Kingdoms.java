@@ -90,6 +90,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.claimChunk(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("claims")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.sendKingdomsClaims(p);
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("unclaim")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.unclaim"))) {
                             return true;
@@ -99,6 +110,28 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             } else {
                                 Player p = (Player) s;
                                 mod.unclaimChunk(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("unclaimall")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.unclaimall"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.unclaimAllChunks(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("unclaimall-confirm")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.unclaimall"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.unclaimAllConfirm(p);
                             }
                         }
                     } else if (a[0].equalsIgnoreCase("deposit")) {
@@ -117,6 +150,34 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             return true;
                         } else {
                             mod.sendKingdomsList(s, 1);
+                        }
+                    } else if (a[0].equalsIgnoreCase("showchunks")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.showchunks"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                if (mod.getChunksBordersPlayerList().contains(p)) {
+                                    mod.getChunksBordersPlayerList().remove(p);
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.disabled"));
+                                } else {
+                                    mod.getChunksBordersPlayerList().add(p);
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.actived"));
+                                }
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("permissions")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.permissions"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.sendMainPermissionsGui(p);
+                            }
                         }
                     } else {
                         getUsage(s);
@@ -177,11 +238,18 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             }
                         }
                     } else if (a[0].equalsIgnoreCase("list")) {
-                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.list"))) {
                             return true;
                         } else {
                             int page = Integer.parseInt(a[1]);
                             mod.sendKingdomsList(s, page);
+                        }
+                    } else if (a[0].equalsIgnoreCase("info")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.info"))) {
+                            return true;
+                        } else {
+                            String kingdomName = a[1];
+                            mod.sendKingdomInfo(s, kingdomName);
                         }
                     } else {
                         getUsage(s);
@@ -238,6 +306,14 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "expand-territory")) {
+                            toReturn.add("claims");
+                        }
+                    }
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.deposit"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;
@@ -262,8 +338,31 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.unclaimall"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "release-all-territories")) {
+                            if (!mod.getReleaseAllCooldown().contains(player)) {
+                                toReturn.add("unclaimall");
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.unclaimall"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "release-all-territories")) {
+                            if (mod.getReleaseAllCooldown().contains(player)) {
+                                toReturn.add("unclaimall");
+                            }
+                        }
+                    }
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.list"))) {
                     toReturn.add("list");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.info"))) {
+                    toReturn.add("info");
                 }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.create"))) {
                     if (s instanceof Player) {
@@ -297,6 +396,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.permissions"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-roles")) {
+                            toReturn.add("permissions");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.showchunks"))) {
+                    toReturn.add("showchunks");
+                }
                 return toReturn;
             } else if (a.length == 2) {
                 List<String> toReturn = new ArrayList<>();
@@ -323,6 +433,15 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         int pageCount = (int) Math.ceil((double) kingdoms.size()/pageSize);
                         for (int page=1; page<=pageCount; page++) {
                             toReturn.add(String.valueOf(page));
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.info"))) {
+                    if (a[0].equalsIgnoreCase("info")) {
+                        List<Kingdom> kingdomsList = db.getKingdoms().kingdomsList();
+                        for (Kingdom kingdom : kingdomsList) {
+                            String kingdomName = kingdom.getKingdomName();
+                            toReturn.add(kingdomName);
                         }
                     }
                 }

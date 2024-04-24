@@ -70,12 +70,12 @@ public class Permissions {
         if (!tableExists()) {
             String query = isMysql ?
                     "CREATE TABLE " + table + "(" +
-                            "`perm_id` INT NOT NULL," +
+                            "`perm_id` INT AUTO_INCREMENT NOT NULL ," +
                             "`perm_name` VARCHAR(40) NOT NULL UNIQUE," +
                             "PRIMARY KEY (perm_id)" +
                             ")" :
                     "CREATE TABLE " + table + "(" +
-                            "`perm_id` INTEGER PRIMARY KEY," +
+                            "`perm_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                             "`perm_name` VARCHAR(40) NOT NULL UNIQUE" +
                             ")";
             try {
@@ -125,6 +125,25 @@ public class Permissions {
         return id;
     }
 
+    public String getPermName(int permId) {
+        String permName = null;
+        String query = "SELECT perm_name FROM " + table + " WHERE perm_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, permId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                permName = rs.getString("perm_name");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il nome del permesso " + permId + "!");
+            e.printStackTrace();
+        }
+        return permName;
+    }
+
     private boolean existPermission(String permname) {
         boolean value = false;
         String query = "SELECT * FROM " + table + " WHERE perm_name=?";
@@ -146,5 +165,15 @@ public class Permissions {
 
     public List<String> getPermissionsList() {
         return permissionsList;
+    }
+
+    public List<String> getActualsPermissionsList() {
+        List<String> list = new ArrayList<>();
+        for (String key : config.getSettings().getConfigurationSection("kingdoms.roles.leader.default-permissions").getKeys(false)) {
+            if (!list.contains(key)) {
+                list.add(key);
+            }
+        }
+        return list;
     }
 }

@@ -1,6 +1,7 @@
 package me.sirimperivm.spigot;
 
 import me.sirimperivm.spigot.commands.Kingdoms;
+import me.sirimperivm.spigot.commands.KingdomsAdmin;
 import me.sirimperivm.spigot.events.Event;
 import me.sirimperivm.spigot.extras.PapiExpansion;
 import me.sirimperivm.spigot.util.ConfUtil;
@@ -52,6 +53,8 @@ public final class Main extends JavaPlugin {
 
         getCommand("kg").setExecutor(new Kingdoms(plugin));
         getCommand("kg").setTabCompleter(new Kingdoms(plugin));
+        getCommand("kga").setExecutor(new KingdomsAdmin(plugin));
+        getCommand("kga").setTabCompleter(new KingdomsAdmin(plugin));
 
         getPluginManager().registerEvents(new Event(plugin), plugin);
 

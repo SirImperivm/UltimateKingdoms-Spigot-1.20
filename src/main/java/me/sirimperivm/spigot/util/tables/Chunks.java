@@ -5,6 +5,9 @@ import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.other.Logger;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @SuppressWarnings("all")
 public class Chunks {
@@ -55,28 +58,29 @@ public class Chunks {
         if (!tableExists()) {
             String query = isMysql ?
                     "CREATE TABLE " + table + "(" +
-                            "`chunk_id` INT AUTO_INCREMENT NOT NULL," +
-                            "`world_name` VARCHAR(125) NOT NULL,)" +
-                            "`min_x` INT NOT NULL," +
-                            "`max_x` INT NOT NULL," +
-                            "`min_y` INT NOT NULL," +
-                            "`max_y` INT NOT NULL," +
-                            "`min_z` INT NOT NULL," +
-                            "`max_z` INT NOT NULL," +
-                            "`kingdom_id` INT NOT NULL," +
-                            "PRIMARY KEY (chunk_id)," +
-                            "CONSTRAINT `ch_ki_kid` FOREIGN KEY (kindom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE" +
+                            "`chunk_id` INT AUTO_INCREMENT NOT NULL, " +
+                            "`world_name` VARCHAR(125) NOT NULL, " +
+                            "`min_x` INT NOT NULL, " +
+                            "`max_x` INT NOT NULL, " +
+                            "`min_y` INT NOT NULL, " +
+                            "`max_y` INT NOT NULL, " +
+                            "`min_z` INT NOT NULL, " +
+                            "`max_z` INT NOT NULL, " +
+                            "`kingdom_id` INT NOT NULL, " +
+                            "PRIMARY KEY (chunk_id), " +
+                            "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE" +
                             ")" :
                     "CREATE TABLE " + table + "(" +
-                            "`chunk_id` INTEGER PRIMARY KEY AUTOINCREMENT," +
-                            "`world_name` VARCHAR(125) NOT NULL," +
-                            "`min_x` INTEGER NOT NULL," +
-                            "`max_x` INTEGER NOT NULL," +
-                            "`min_y` INTEGER NOT NULL," +
-                            "`max_y` INTEGER NOT NULL," +
-                            "`min_z` INTEGER NOT NULL," +
-                            "`max_z` INTEGER NOT NULL," +
-                            "`kingdom_id` INTEGER NOT NULL" +
+                            "`chunk_id` INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "`world_name` VARCHAR(125) NOT NULL, " +
+                            "`min_x` INTEGER NOT NULL, " +
+                            "`max_x` INTEGER NOT NULL, " +
+                            "`min_y` INTEGER NOT NULL, " +
+                            "`max_y` INTEGER NOT NULL, " +
+                            "`min_z` INTEGER NOT NULL, " +
+                            "`max_z` INTEGER NOT NULL, " +
+                            "`kingdom_id` INTEGER NOT NULL, " +
+                            "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON DELETE CASCADE ON UPDATE CASCADE" +
                     ")";
             try {
                 PreparedStatement state = conn.prepareStatement(query);
@@ -233,5 +237,64 @@ public class Chunks {
         }
 
         return value;
+    }
+
+    public boolean isInChunkWalls(String worldName, int x, int y, int z) {
+        boolean value = false;
+        String query = "SELECT * FROM " + table + " WHERE " +
+                "(min_x<=? AND max_x>=? AND min_z=? AND max_z=?) OR " +
+                "(min_z<=? AND max_z>=? AND min_x=? AND max_x=?) AND " +
+                "(min_y<=? AND max_y>=?) AND world_name=?";
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, x);
+            state.setInt(2, x);
+            state.setInt(3, z);
+            state.setInt(4, z);
+            state.setInt(5, z);
+            state.setInt(6, z);
+            state.setInt(7, x);
+            state.setInt(8, x);
+            state.setInt(9, y);
+            state.setInt(10, y);
+            state.setString(11, worldName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                value = true;
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile capire se il blocco ricercato\" Mondo: " + worldName + ", X: " + x + ", Y: " + y + ", Z: " + z + ", sia compreso nel muro di un chunk!");
+            e.printStackTrace();
+        }
+
+        return value;
+    }
+
+    public HashMap<Integer, List<String>> achieveChunksData(int kingdomId) {
+        HashMap<Integer, List<String>> chunksData = new HashMap<>();
+        String query = "SELECT * FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                int chunkId = rs.getInt("chunk_id");
+                List<String> data = new ArrayList<>();
+                data.add(rs.getString("world_name"));
+                data.add(rs.getString("min_x"));
+                data.add(rs.getString("max_x"));
+                data.add(rs.getString("min_y"));
+                data.add(rs.getString("max_y"));
+                data.add(rs.getString("min_z"));
+                data.add(rs.getString("max_z"));
+                chunksData.put(chunkId, data);
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere i dati dei chunk del regno: " + db.getKingdoms().getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return chunksData;
     }
 }

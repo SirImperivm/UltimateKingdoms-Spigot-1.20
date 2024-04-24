@@ -4,7 +4,9 @@ import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.other.Logger;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 @SuppressWarnings("all")
 public class Roles {
@@ -162,6 +164,22 @@ public class Roles {
             e.printStackTrace();
         }
         return value;
+    }
+
+    public List<Integer> getRolesList() {
+        List<Integer> list = new ArrayList<>();
+        String query = "SELECT kingdom_role FROM " + table;
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getInt("kingdom_role"));
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei ruoli creati.");
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public HashMap<Integer, Integer> roleIdsToWeight() {
