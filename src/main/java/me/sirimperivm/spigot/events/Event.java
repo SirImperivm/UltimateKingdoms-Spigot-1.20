@@ -282,25 +282,51 @@ public class Event implements Listener {
                         player.sendMessage(config.getTranslatedString("messages.kingdoms.building.error.cant-break-blocks"));
                         return;
                     } else {
-                        List<Material> containers = Arrays.asList(
-                                Material.CHEST,
-                                Material.CHEST_MINECART,
-                                Material.TRAPPED_CHEST,
-                                Material.HOPPER,
-                                Material.HOPPER_MINECART,
-                                Material.FURNACE,
-                                Material.FURNACE_MINECART,
-                                Material.SMOKER,
-                                Material.BLAST_FURNACE,
-                                Material.DROPPER,
-                                Material.DISPENSER,
-                                Material.SHULKER_BOX
-                        );
-                        if (actualChunk.isInChunkWalls(blockLocation)) {
-                            if (containers.contains(block.getType()) && !mod.hasPermission(player, "use-containers")) {
-                                e.setCancelled(true);
-                                player.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.prevent-theif"));
-                                return;
+                        if (block.getType() == Material.HOPPER || block.getType() == Material.HOPPER_MINECART) {
+                            Location hopperLocation = block.getLocation();
+
+                            List<Material> containers = Arrays.asList(
+                                    Material.CHEST,
+                                    Material.CHEST_MINECART,
+                                    Material.TRAPPED_CHEST,
+                                    Material.HOPPER,
+                                    Material.HOPPER_MINECART,
+                                    Material.FURNACE,
+                                    Material.FURNACE_MINECART,
+                                    Material.SMOKER,
+                                    Material.BLAST_FURNACE,
+                                    Material.DROPPER,
+                                    Material.DISPENSER,
+                                    Material.SHULKER_BOX
+                            );
+
+                            List<Location> locations = Arrays.asList(
+                                    hopperLocation.add(0, 1, 0),
+                                    hopperLocation.add(0, -1, 0),
+                                    hopperLocation.add(1, 0, 0),
+                                    hopperLocation.add(-1, 0, 0),
+                                    hopperLocation.add(0, 0, 1),
+                                    hopperLocation.add(0, 0, -1)
+                            );
+
+                            boolean blockInteraction = false;
+
+                            for (Material container : containers) {
+                                for (Location location : locations) {
+                                    if (location.getBlock().getType() == container) {
+                                        blockInteraction = true;
+                                        break;
+                                    }
+                                }
+                                if (blockInteraction) break;
+                            }
+
+                            if (blockInteraction) {
+                                if (!mod.hasPermission(player, "use-containers")) {
+                                    e.setCancelled(true);
+                                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.prevent-theif"));
+                                    return;
+                                }
                             }
                         }
                     }
@@ -337,25 +363,51 @@ public class Event implements Listener {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.building.error.cant-place-blocks"));
                 return;
             } else {
-                List<Material> containers = Arrays.asList(
-                        Material.CHEST,
-                        Material.CHEST_MINECART,
-                        Material.TRAPPED_CHEST,
-                        Material.HOPPER,
-                        Material.HOPPER_MINECART,
-                        Material.FURNACE,
-                        Material.FURNACE_MINECART,
-                        Material.SMOKER,
-                        Material.BLAST_FURNACE,
-                        Material.DROPPER,
-                        Material.DISPENSER,
-                        Material.SHULKER_BOX
-                );
-                if (actualChunk.isInChunkWalls(blockLocation)) {
-                    if (containers.contains(block.getType()) && !mod.hasPermission(player, "use-containers")) {
-                        e.setCancelled(true);
-                        player.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.prevent-theif"));
-                        return;
+                if (block.getType() == Material.HOPPER || block.getType() == Material.HOPPER_MINECART) {
+                    Location hopperLocation = block.getLocation();
+
+                    List<Material> containers = Arrays.asList(
+                            Material.CHEST,
+                            Material.CHEST_MINECART,
+                            Material.TRAPPED_CHEST,
+                            Material.HOPPER,
+                            Material.HOPPER_MINECART,
+                            Material.FURNACE,
+                            Material.FURNACE_MINECART,
+                            Material.SMOKER,
+                            Material.BLAST_FURNACE,
+                            Material.DROPPER,
+                            Material.DISPENSER,
+                            Material.SHULKER_BOX
+                    );
+
+                    List<Location> locations = Arrays.asList(
+                            hopperLocation.add(0, 1, 0),
+                            hopperLocation.add(0, -1, 0),
+                            hopperLocation.add(1, 0, 0),
+                            hopperLocation.add(-1, 0, 0),
+                            hopperLocation.add(0, 0, 1),
+                            hopperLocation.add(0, 0, -1)
+                    );
+
+                    boolean blockInteraction = false;
+
+                    for (Material container : containers) {
+                        for (Location location : locations) {
+                            if (location.getBlock().getType() == container) {
+                                blockInteraction = true;
+                                break;
+                            }
+                        }
+                        if (blockInteraction) break;
+                    }
+
+                    if (blockInteraction) {
+                        if (!mod.hasPermission(player, "use-containers")) {
+                            e.setCancelled(true);
+                            player.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.prevent-theif"));
+                            return;
+                        }
                     }
                 }
             }

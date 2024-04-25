@@ -239,38 +239,6 @@ public class Chunks {
         return value;
     }
 
-    public boolean isInChunkWalls(String worldName, int x, int y, int z) {
-        boolean value = false;
-        String query = "SELECT * FROM " + table + " WHERE " +
-                "(min_x<=? AND max_x>=? AND min_z=? AND max_z=?) OR " +
-                "(min_z<=? AND max_z>=? AND min_x=? AND max_x=?) AND " +
-                "(min_y<=? AND max_y>=?) AND world_name=?";
-        try {
-            PreparedStatement state = conn.prepareStatement(query);
-            state.setInt(1, x);
-            state.setInt(2, x);
-            state.setInt(3, z);
-            state.setInt(4, z);
-            state.setInt(5, z);
-            state.setInt(6, z);
-            state.setInt(7, x);
-            state.setInt(8, x);
-            state.setInt(9, y);
-            state.setInt(10, y);
-            state.setString(11, worldName);
-            ResultSet rs = state.executeQuery();
-            while (rs.next()) {
-                value = true;
-                break;
-            }
-        } catch (SQLException e) {
-            log.fail("[UltimateKingdoms] Impossibile capire se il blocco ricercato\" Mondo: " + worldName + ", X: " + x + ", Y: " + y + ", Z: " + z + ", sia compreso nel muro di un chunk!");
-            e.printStackTrace();
-        }
-
-        return value;
-    }
-
     public HashMap<Integer, List<String>> achieveChunksData(int kingdomId) {
         HashMap<Integer, List<String>> chunksData = new HashMap<>();
         String query = "SELECT * FROM " + table + " WHERE kingdom_id=?";

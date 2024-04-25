@@ -90,6 +90,28 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.claimChunk(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("sethome")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.sethome"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.setKingdomHome(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("home")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.home"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.reachKingdomHome(p);
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("claims")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
                             return true;
@@ -237,6 +259,32 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 }
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("setwarp")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.setwarp"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                String warpName = a[1];
+
+                                mod.setKingdomWarp(p, warpName);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("warp")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.warp"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                String warpName = a[1];
+
+                                mod.reachKingdomWarp(p, warpName);
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("list")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.list"))) {
                             return true;
@@ -319,6 +367,38 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         Player player = (Player) s;
                         if (mod.hasPermission(player, "deposit")) {
                             toReturn.add("deposit");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.sethome"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "set-home")) {
+                            toReturn.add("sethome");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.home"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "use-home")) {
+                            toReturn.add("home");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.setwarp"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "set-warps")) {
+                            toReturn.add("setwarp");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.warp"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "use-warps")) {
+                            toReturn.add("warp");
                         }
                     }
                 }
@@ -464,6 +544,26 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 for (Player online : db.getKingdoms().kingdomPlayersList(kingdomId)) {
                                     toReturn.add(online.getName());
                                 }
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.setwarp"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "set-warps")) {
+                            if (a[0].equalsIgnoreCase("setwarp")) {
+                                toReturn.add("<nomewarp>");
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.warp"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "use-warps")) {
+                            if (a[0].equalsIgnoreCase("warp")) {
+                                toReturn.add("<nomewarp>");
                             }
                         }
                     }

@@ -294,7 +294,7 @@ messages:
         user-offline: "&8[&c!&8] &cL'utente scelto è offline o non esiste."
         page-not-found: "&8[&c!&8] &cPagina scelta non trovata."
         kingdom-not-exists: "&8[&c!&8] &cIl regno scelto non esiste."
-        prevent-theif: "&8[&c!&8] &cNon puoi piazzare o rimuovere contenitori nei bordi del claim. Devi avere il permesso \"use-containers\"."
+        prevent-theif: "&8[&c!&8] &cNon puoi piazzare blocchi interagibili con containers se non hai il permesso adatto nel regno."
     creation:
       error:
         already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."
@@ -319,6 +319,9 @@ messages:
       error:
         already-have-one: "&8[&c!&8] &cL'utente che vuoi invitare fa già parte di un altro regno."
         never-invited: "&8[&c!&8] &cNon hai nessuna richiesta di invito in regni attiva, probabilmente è scaduto l'invito."
+        max-members-reached: "&8[&c!&8] &cNon puoi aggiungere più di &4{0}&c membri nel tuo regno."
+        hasnt-permission: "&8[&c!&8] &cNon hai il permesso di invitare membri nel tuo regno."
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai un regno."
     joined:
       success: "&8[&a!&8] &aSei entrato a far parte del regno &2{0}&a."
       info: "&8[&e!&8] &eL'utente &6{0} &efa ora parte del tuo regno."
@@ -415,6 +418,39 @@ messages:
       error:
         not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
         hasnt-permission: "&8[&c!&8] &cNon puoi aprire il pannello dei permessi del tuo regno."
+    warps:
+      sethome:
+        success:
+          home-set: "&8[&a!&8] &aHome del regno impostata, raggiungila con &2/kg home&a."
+        info:
+          home-set-broadcast: "&8[&e!&8] &eLa home del tuo regno è stata impostata, raggiungila con &6/kg home&e."
+        error:
+          not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+          hasnt-permission: "&8[&c!&8] &cNon hai il permesso di impostare la home del tuo regno."
+          not-in-your-claim: "&8[&c!&8] &cPuoi impostare la home del tuo regno solo sui territori posseduti."
+      home:
+        success:
+          teleported: "&8[&a!&8] &aTeletrasportato!"
+        error:
+          not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+          hasnt-permission: "&8[&c!&8] &cNon hai il permesso di raggiungere la home del tuo regno."
+          not-set: "&8[&c!&8] &cLa home del regno non è stata impostata."
+      setwarp:
+        success:
+          warp-set: "&8[&a!&8] &aWarp del regno impostato, raggiungilo con &2/kg warp {0}&a."
+        info:
+          warp-set-broadcast: "&8[&e!&8] &eE' stato aggiunto un warp al tuo regno, raggiungilo con &6/kg warp {0}&e."
+        error:
+          not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+          hasnt-permission: "&8[&c!&8] &cNon hai il permesso di impostare warp nel tuo regno."
+          not-in-your-claim: "&8[&c!&8] &cPuoi impostare i warp del tuo regno solo sui territori posseduti."
+      warp:
+        success:
+          teleported: "&8[&a!&8] &aTeletrasportato!"
+        error:
+          not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+          hasnt-permission: "&8[&c!&8] &cNon hai il permesso di raggiungere i warp del tuo regno."
+          not-set: "&8[&c!&8] &cNon esiste questo warp nel tuo regno."
 
 helps:
   commands:
@@ -424,6 +460,8 @@ helps:
       - "&3/&bkg claims &7- &3Mostra quanti chunk hai claimato."
       - "&3/&bkg deposit &7- &3Apre la gui per depositare l'oro nel tuo regno."
       - "&3/&bkg disband &7- &3Elimini il tuo regno."
+      - "&3/&bkg sethome &7- &3Imposti la home del tuo regno."
+      - "&3/&bkg home &7- &3Raggiungi la home del tuo regno."
       - "&3/&bkg showchunks &7- &3Mostra lo stato dei chunk."
       - "&3/&bkg unclaim &7- &3Rilasci un chunk 16x16 di territorio del tuo regno."
       - "&3/&bkg unclaimall &7- &3Rilasci tutti i territori ottenuti."
@@ -431,6 +469,8 @@ helps:
       - "&3/&bkg list &a[pagina] &7- &3Mostra la lista dei regni creati."
       - "&3/&bkg info &a<nome> &7- &3Mostra le info del regno scelto."
       - "&3/&bkg create &a<nome> &7- &3Crei un regno."
+      - "&3/&bkg setwarp &a<nomewarp> &7- &3Crei un warp nel tuo regno."
+      - "&3/&bkg warp &a<nomewarp> &7- &3Raggiungi un warp del tuo regno."
       - "&3/&bkg expel &a<nome> &7- &3Espelli una persona dal tuo regno."
       - "&3/&bkg invite &a<nome> &7- &3Inviti una persona nel tuo regno."
       - "&3/&bkg changerole &a<nomeplayer> <nomeruolo> &7- &3Imposti un ruolo ad un utente del tuo regno."
@@ -452,9 +492,10 @@ formats-lists:
     spacer: "&r"
     lines:
       - "->S:A054E4/&lNome: &7{0}"
-      - "->S:A054E4/&lLivello: &7{1}"
-      - "->S:A054E4/&lOro: &7{2}"
-      - "->S:A054E4/&lMembri: &7{3}"
+      - "->S:A054E4/&lLeader: &7{1}"
+      - "->S:A054E4/&lLivello: &7{3}"
+      - "->S:A054E4/&lOro: &7{4}"
+      - "->S:A054E4/&lMembri: &7{5}"
     footer: "->G:444444/&m                              /->G:666666"
   kingdoms-claims:
     header: "->G:444444/&m                              /->G:666666"
@@ -472,6 +513,10 @@ permissions:
       invite: kingdoms.use
       accept: kingdoms.use
       expel: kingdoms.use
+      sethome: kingdoms.use
+      home: kingdoms.use
+      setwarp: kingdoms.use
+      warp: kingdoms.use
       change-role: kingdoms.use
       claim: kingdoms.use
       claims: kingdoms.use

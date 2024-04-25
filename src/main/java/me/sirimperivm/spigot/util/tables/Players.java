@@ -164,6 +164,24 @@ public class Players {
         return role;
     }
 
+    public int getKingdomRole(String playerName) {
+        int role = 0;
+        String query = "SELECT kingdom_role FROM " + tableName + " WHERE player_name='" + playerName + "'";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                role = rs.getInt("kingdom_role");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il ruolo nel regno dell'utente " + playerName + "!");
+            e.printStackTrace();
+        }
+        return role;
+    }
+
     public int getKingdomId(Player player) {
         int kid = 0;
         String playerName = player.getName();

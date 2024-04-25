@@ -9,7 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("all")
@@ -114,17 +113,6 @@ public class Chunk {
                 );
             }
         });
-    }
-
-    public boolean isInChunkWalls(Location loc) {
-        List<Location> walls = new ArrayList<>();
-        World world = loc.getWorld();
-
-        int blockX = loc.getBlockX();
-        int blockY = loc.getBlockY();
-        int blockZ = loc.getBlockZ();
-
-        return db.getChunks().isInChunkWalls(world.getName(), blockX, blockY, blockZ);
     }
 
     public void unclaimChunk(Chunk chunk) {

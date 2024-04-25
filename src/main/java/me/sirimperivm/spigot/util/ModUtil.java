@@ -18,6 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("all")
 public class ModUtil {
@@ -179,6 +180,16 @@ public class ModUtil {
                 }
             }
 
+            AtomicReference<String> kingdomLeaderAtomic = null;
+            List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
+            kingdomPlayers.forEach(kingdomPlayer -> {
+                int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
+                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+
+                if (kingdomRole.equalsIgnoreCase("leader")) kingdomLeaderAtomic.set(kingdomPlayer);
+            });
+            String kingdomLeader = kingdomLeaderAtomic.toString();
+
             String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
             String levelTitle = config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".title");
             double goldAmount = db.getKingdoms().getGoldAmount(kingdomId);
@@ -190,9 +201,10 @@ public class ModUtil {
             for (String line : config.getSettings().getStringList(messagePath + ".lines")) {
                 target.sendMessage(Colors.translateString(line
                         .replace("{0}", kingdomName)
-                        .replace("{1}", Colors.translateString(levelTitle))
-                        .replace("{2}", Colors.translateString(formattedGoldAmount))
-                        .replace("{3}", Colors.translateString(playersText.toString()))
+                        .replace("{1}", kingdomLeader)
+                        .replace("{3}", Colors.translateString(levelTitle))
+                        .replace("{4}", Colors.translateString(formattedGoldAmount))
+                        .replace("{5}", Colors.translateString(playersText.toString()))
                 ));
             }
             target.sendMessage(config.getTranslatedString(messagePath + ".spacer"));
@@ -234,30 +246,147 @@ public class ModUtil {
         }
     }
 
-    public void invitePlayerKingdom(Player sender, Player target, Kingdom kingdom) {
-        if (!db.getPlayers().existsPlayerData(target)) {
-            String kingdomName = kingdom.getKingdomName();
-            String senderName = sender.getName();
+    public void setKingdomHome(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "set-home")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+                Location loc = player.getLocation();
+                Chunk chunk = new Chunk(plugin, loc);
 
-            kingdomInvites = new HashMap<>();
-            kingdomInvites.put(target, kingdom);
+                if (db.getChunks().existChunk(chunk)) {
+                    if (db.getWarps().existWarpData(kingdomId, "home", "home")) {
+                        db.getWarps().dropWarpData(kingdomId, "home", "home");
+                    }
+                    db.getWarps().insertWarpData(kingdomId, loc, "home", "home");
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.success.home-set"));
 
-            sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.success.started"));
-
-            target.sendMessage(config.getTranslatedString("messages.kingdoms.invites.info.started")
-                    .replace("{0}", kingdomName)
-                    .replace("{1}", senderName));
-
-            BukkitScheduler scheduler = Bukkit.getScheduler();
-
-            scheduler.runTaskLater(plugin, () -> {
-                if (kingdomInvites.containsKey(target)) {
-                    target.sendMessage(config.getTranslatedString("messages.kingdoms.invites.info.expired"));
-                    kingdomInvites.remove(target);
+                    List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                    onlineMembers.forEach(online -> {
+                        online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.info.home-set-broadcast"));
+                    });
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.not-in-your-claim"));
                 }
-            }, 30*20L);
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.hasnt-permission"));
+            }
         } else {
-            sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.already-have-one"));
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void setKingdomWarp(Player player, String warpName) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "set-warps")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+                Location loc = player.getLocation();
+                Chunk chunk = new Chunk(plugin, loc);
+
+                if (db.getChunks().existChunk(chunk)) {
+                    if (db.getWarps().existWarpData(kingdomId, "warp", warpName)) {
+                        db.getWarps().dropWarpData(kingdomId, "warp",warpName);
+                    }
+                    db.getWarps().insertWarpData(kingdomId, loc, warpName, "warp");
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.success.warp-set")
+                            .replace("{0}", warpName));
+
+                    List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                    onlineMembers.forEach(online -> {
+                        online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.info.warp-set-broadcast")
+                                .replace("{0}", warpName));
+                    });
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.not-in-your-claim"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void reachKingdomHome(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "use-home")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+                if (db.getWarps().existWarpData(kingdomId, "home", "home")) {
+                    Location homeLocation = db.getWarps().getHome(kingdomId);
+
+                    player.teleport(homeLocation);
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.home.success.teleported"));
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.home.error.not-set"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.home.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.home.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void reachKingdomWarp(Player player, String warpName) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "use-warps")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+                if (db.getWarps().existWarpData(kingdomId, "warp", warpName)) {
+                    Location warpLocation = db.getWarps().getWarp(kingdomId, warpName);
+
+                    player.teleport(warpLocation);
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.warp.success.teleported"));
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.warp.error.not-set"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.warp.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.warp.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void invitePlayerKingdom(Player sender, Player target, Kingdom kingdom) {
+        if (db.getPlayers().existsPlayerData(sender)) {
+            if (hasPermission(sender, "invite-players")) {
+                int kingdomId = db.getPlayers().getKingdomId(sender);
+                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                int kingdomMaxMembers = config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".max-members");
+                int kingdomMembers = db.getKingdoms().kingdomPlayersCount(kingdomId);
+                if (kingdomMaxMembers>kingdomMembers) {
+                    if (!db.getPlayers().existsPlayerData(target)) {
+                        String kingdomName = kingdom.getKingdomName();
+                        String senderName = sender.getName();
+
+                        kingdomInvites = new HashMap<>();
+                        kingdomInvites.put(target, kingdom);
+
+                        sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.success.started"));
+
+                        target.sendMessage(config.getTranslatedString("messages.kingdoms.invites.info.started")
+                                .replace("{0}", kingdomName)
+                                .replace("{1}", senderName));
+
+                        BukkitScheduler scheduler = Bukkit.getScheduler();
+
+                        scheduler.runTaskLater(plugin, () -> {
+                            if (kingdomInvites.containsKey(target)) {
+                                target.sendMessage(config.getTranslatedString("messages.kingdoms.invites.info.expired"));
+                                kingdomInvites.remove(target);
+                            }
+                        }, 30 * 20L);
+                    } else {
+                        sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.already-have-one"));
+                    }
+                } else {
+                    sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.max-members-reached")
+                            .replace("{0}", String.valueOf(kingdomMaxMembers)));
+                }
+            } else {
+                sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.hasnt-permission"));
+            }
+        } else {
+            sender.sendMessage(config.getTranslatedString("messages.kingdoms.invites.error.not-in-a-kingdom"));
         }
     }
 

@@ -200,6 +200,25 @@ public class Kingdoms {
         return amount;
     }
 
+    public int kingdomPlayersCount(int kingdomId) {
+        int count = 0;
+        String query = "SELECT COUNT(*) AS N_P FROM " + table + " WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                count = rs.getInt("N_P");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere la quantità dei player che sono nel regno: " + getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return count;
+    }
+
     public String getKingdomLevel(String kingdomName) {
         String level = "level-0";
         String query = "SELECT kingdomLevel FROM " + table + " WHERE kingdomName=?";
