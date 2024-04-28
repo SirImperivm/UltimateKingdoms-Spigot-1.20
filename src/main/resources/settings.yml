@@ -28,15 +28,7 @@ settings:
         g: 255
         b: 0
       amount: 1
-    yourclaim-cantbuild-particle:
-      has-color: true
-      name: "REDSTONE"
-      color:
-        r: 255
-        g: 172
-        b: 0
-      amount: 1
-    yourclaim-canbuild-particle:
+    yourclaim-particle:
       has-color: true
       name: "REDSTONE"
       color:
@@ -193,6 +185,7 @@ kingdoms:
         invite-players: true
         expel-players: true
         can-rankup-kingdom: true
+        change-lead: true
         use-warps: true
         set-warps: true
         manage-players: true
@@ -216,6 +209,7 @@ kingdoms:
         invite-players: true
         expel-players: true
         can-rankup-kingdom: true
+        change-lead: false
         use-warps: true
         set-warps: true
         manage-players: true
@@ -239,6 +233,7 @@ kingdoms:
         invite-players: false
         expel-players: false
         can-rankup-kingdom: false
+        change-lead: false
         use-warps: true
         set-warps: false
         manage-players: false
@@ -262,6 +257,7 @@ kingdoms:
         invite-players: false
         expel-players: false
         can-rankup-kingdom: false
+        change-lead: false
         use-warps: true
         set-warps: false
         manage-players: false
@@ -272,9 +268,10 @@ kingdoms:
         release-all-territories: false
         disband: false
   default-settings:
-    friendly-fire: true
+    friendly-fire: false
     enemy-pvp: false
     enderman-grief: true
+    block-change-lead: false
 
 messages:
   errors:
@@ -451,6 +448,30 @@ messages:
           not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
           hasnt-permission: "&8[&c!&8] &cNon hai il permesso di raggiungere i warp del tuo regno."
           not-set: "&8[&c!&8] &cNon esiste questo warp nel tuo regno."
+    leave:
+      success:
+        leaved: "&8[&a!&8] &aHai lasciato il regno &2{0}&a."
+      info:
+        leaved-broadcast: "&8[&e!&8] &eL'utente &6{0} &eha lasciato il tuo regno."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        you-are-the-leader: "&8[&c!&8] &cSei il leader del tuo regno."
+    changelead:
+      success:
+        confirmed: "&8[&a!&8] &aCambio leader eseguito con successo, tu sei diventato un officer."
+      info:
+        cooldown-start: "&8[&e!&8] &ePer quest'azione è necessaria una conferma. Hai 15 secondi, esegui &6/kg changelead-confirm&e."
+        cooldown-expired: "&8[&e!&8] &eTempo di conferma, scaduto."
+        confirmed-broadcast: "&8[&e!&8] &eNel tuo regno è stato effettuato un cambio leader, il nuovo è &6{0}&e."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        not-kingdom-leader: "&8[&c!&8] &cNon sei il leader del regno."
+        already-cooldown: "&8[&c!&8] &cSei già in cooldown per il cambio del leader."
+        not-cooldown: "&8[&c!&8] &cNon hai richieste da confermare."
+        hasnt-permission: "&8[&c!&8] &cNon hai accesso a questo comando nel tuo regno."
+        blocked-from-server: "&8[&c!&8] &cIn questo server non accettiamo il cambio leader."
+        target-not-in-a-kingdom: "&8[&c!&8] &cL'utente scelto non ha un regno."
+        target-not-in-your-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte del tuo regno."
 
 helps:
   commands:
@@ -463,6 +484,7 @@ helps:
       - "&3/&bkg sethome &7- &3Imposti la home del tuo regno."
       - "&3/&bkg home &7- &3Raggiungi la home del tuo regno."
       - "&3/&bkg showchunks &7- &3Mostra lo stato dei chunk."
+      - "&3/&bkg leave &7- &3Esci da un regno."
       - "&3/&bkg unclaim &7- &3Rilasci un chunk 16x16 di territorio del tuo regno."
       - "&3/&bkg unclaimall &7- &3Rilasci tutti i territori ottenuti."
       - "&3/&bkg permissions &7- &3Apre la gui dei permessi nel tuo regno."
@@ -473,6 +495,7 @@ helps:
       - "&3/&bkg warp &a<nomewarp> &7- &3Raggiungi un warp del tuo regno."
       - "&3/&bkg expel &a<nome> &7- &3Espelli una persona dal tuo regno."
       - "&3/&bkg invite &a<nome> &7- &3Inviti una persona nel tuo regno."
+      - "&3/&bkg changelead &a<nomeplayer> &7- &3Rilasci il ruolo di Leader ad un altro membro del regno."
       - "&3/&bkg changerole &a<nomeplayer> <nomeruolo> &7- &3Imposti un ruolo ad un utente del tuo regno."
     admin:
       - "&4/&ckga reload &7- &4Ricarica il config del plugin."
@@ -515,10 +538,12 @@ permissions:
       expel: kingdoms.use
       sethome: kingdoms.use
       home: kingdoms.use
+      leave: kingdoms.use
       setwarp: kingdoms.use
       warp: kingdoms.use
       change-role: kingdoms.use
       claim: kingdoms.use
+      changelead: kingdoms.use
       claims: kingdoms.use
       unclaim: kingdoms.use
       unclaimall: kingdoms.use

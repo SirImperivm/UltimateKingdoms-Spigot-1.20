@@ -112,6 +112,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.reachKingdomHome(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("leave")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.leave"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.leavePlayer(p);
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("claims")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
                             return true;
@@ -121,6 +132,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             } else {
                                 Player p = (Player) s;
                                 mod.sendKingdomsClaims(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("changelead-confirm")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.setNewLead(p);
                             }
                         }
                     } else if (a[0].equalsIgnoreCase("unclaim")) {
@@ -242,6 +264,23 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 }
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("changelead")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                Player t = Bukkit.getPlayerExact(a[1]);
+
+                                if (t == null || !Bukkit.getOnlinePlayers().contains(t)) {
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.user-offline"));
+                                } else {
+                                    mod.preSetNewLead(p, t);
+                                }
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("expel")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
                             return true;
@@ -359,6 +398,39 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         Player player = (Player) s;
                         if (mod.hasPermission(player, "expand-territory")) {
                             toReturn.add("claims");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (!config.getSettings().getBoolean("kingdoms.default-settings.block-change-lead")) {
+                            if (mod.hasPermission(player, "change-lead")) {
+                                toReturn.add("changelead");
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.leave"))) {
+                    if (s instanceof Player) {
+                        Player p = (Player) s;
+                        if (db.getPlayers().existsPlayerData(p)) {
+                            int kingdomId = db.getPlayers().getKingdomId(p);
+
+                            String kingdomLeader = null;
+                            List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
+                            for (String kingdomPlayer : kingdomPlayers) {
+                                int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
+                                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+
+                                if (kingdomRole.equalsIgnoreCase("leader")) {
+                                    kingdomLeader = kingdomPlayer;
+                                    break;
+                                }
+                            }
+                            if (!kingdomLeader.equals(p.getName())) {
+                                toReturn.add("leave");
+                            }
                         }
                     }
                 }

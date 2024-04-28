@@ -67,13 +67,15 @@ public class Event implements Listener {
         Gui kgroles = new Gui(plugin, "kingdom-roles");
         Gui kgrolesediting = new Gui(plugin, "kingdom-roles-editing");
 
+        if (inv == null) return;
+
         if (title.equalsIgnoreCase(kgroles.getTitle())) {
             e.setCancelled(true);
             e.setResult(org.bukkit.event.Event.Result.DENY);
             int kingdomId = db.getPlayers().getKingdomId(player);
 
-
             ItemStack clickedItem = inv.getItem(clickedSlot);
+
             if (clickedItem != null && clickedItem.getType() != Material.AIR) {
                 ItemMeta clickedMeta = clickedItem.getItemMeta();
                 int clickedRoleId = clickedMeta.getCustomModelData();
@@ -127,8 +129,25 @@ public class Event implements Listener {
                 ItemStack clickedItem = inv.getItem(clickedSlot);
                 ItemMeta clickedItemMeta = clickedItem.getItemMeta();
                 int clickedPermId = clickedItemMeta.getCustomModelData();
+                String roleName = db.getRoles().getRoleName(roleId);
 
                 if (clickedPermId > 0) {
+                    for (String permName : config.getPermissions().getConfigurationSection("permissions." + kingdomId + ".roles." + roleName + ".permissions").getKeys(false)) {
+                        int permId = db.getPermissions().getPermId(permName);
+                        if (permId == clickedPermId) {
+                            boolean value = config.getPermissions().getBoolean("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName);
+
+                            if (value) {
+                                config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, false);
+                            } else {
+                                config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, true);
+                            }
+
+                            config.save(config.getPermissions(), config.getPermissionsFile());
+                            break;
+                        }
+                    }
+                    /*
                     for (String permName : db.getPermissions().getActualsPermissionsList()) {
                         int permId = db.getPermissions().getPermId(permName);
                         if (clickedPermId == permId) {
@@ -142,8 +161,7 @@ public class Event implements Listener {
 
                             break;
                         }
-                    }
-                    String roleName = db.getRoles().getRoleName(roleId);
+                    } */
                     HashMap<Integer, ItemStack> itemsList = mod.createRolesEditingItemsList(kingdomId, roleId);
 
                     player.closeInventory();
@@ -440,6 +458,8 @@ public class Event implements Listener {
 
             Location victimLocation = victim.getLocation();
             Chunk victimChunk = new Chunk(plugin, victimLocation);
+
+
 
             if (db.getChunks().existChunk(victimChunk)) {
                 int killerKingdomId = 0;

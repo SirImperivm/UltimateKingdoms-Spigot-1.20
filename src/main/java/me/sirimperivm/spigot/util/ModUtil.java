@@ -18,7 +18,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("all")
 public class ModUtil {
@@ -32,6 +31,7 @@ public class ModUtil {
     private HashMap<String, Kingdom> kingdomHash;
     private HashMap<Player, Kingdom> kingdomInvites;
     private HashMap<Player, Integer> rolesPermissionsEditing;
+    private HashMap<Player, Player> changeLeadHash;
     private List<Player> chunksBordersPlayerList;
     private List<Player> bypassPlayerList;
     private List<Player> releaseAllCooldown;
@@ -46,6 +46,7 @@ public class ModUtil {
         chunksBordersPlayerList = new ArrayList<>();
         refreshChunksBordersForPlayers();
         rolesPermissionsEditing = new HashMap<>();
+        changeLeadHash = new HashMap<>();
         bypassPlayerList = new ArrayList<>();
         releaseAllCooldown = new ArrayList<>();
     }
@@ -81,7 +82,17 @@ public class ModUtil {
 
     public void setupPermissions(int kingdomId) {
         for (String role : config.getSettings().getConfigurationSection("kingdoms.roles").getKeys(false)) {
-            if (db.getRoles().existsRoleData(role)) {
+            HashMap<String, Boolean> permissionList = new HashMap<>();
+            for (String permName : config.getSettings().getConfigurationSection("kingdoms.roles." + role + ".default-permissions").getKeys(false)) {
+                boolean value = config.getSettings().getBoolean("kingdoms.roles." + role + ".default-permissions." + permName);
+                permissionList.put(permName, value);
+            }
+
+            for (String permName : permissionList.keySet()) {
+                boolean value = config.getSettings().getBoolean("kingdoms.roles." + role + ".default-permissions." + permName);
+                config.getPermissions().set("permissions." + kingdomId + ".roles." + role + ".permissions." + permName, value);
+            }
+            /*if (db.getRoles().existsRoleData(role)) {
                 int roleId = config.getSettings().getInt("kingdoms.roles." + role + ".id");
 
                 for (String permission : config.getSettings().getConfigurationSection("kingdoms.roles." + role + ".default-permissions").getKeys(false)) {
@@ -92,8 +103,10 @@ public class ModUtil {
                         db.getPermissionsRoles().insertPerm(kingdomId, roleId, permId);
                     }
                 }
-            }
+            } */
         }
+
+        config.save(config.getPermissions(), config.getPermissionsFile());
     }
 
     public void refreshChunksBordersForPlayers() {
@@ -166,9 +179,9 @@ public class ModUtil {
                 if (!playersList.get(playersList.size() - 1).equals(playerName)) {
                     Player player = Bukkit.getPlayerExact(playerName);
                     if (player != null) {
-                        playersText.append("&a" + playerName + "->S:A054E4/,&r");
+                        playersText.append("&a" + playerName + "->S:A054E4/, &r");
                     } else {
-                        playersText.append("&7" + playerName + "->S:A054E4/,&r");
+                        playersText.append("&7" + playerName + "->S:A054E4/, &r");
                     }
                 } else {
                     Player player = Bukkit.getPlayerExact(playerName);
@@ -180,15 +193,17 @@ public class ModUtil {
                 }
             }
 
-            AtomicReference<String> kingdomLeaderAtomic = null;
+            String kingdomLeader = null;
             List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
-            kingdomPlayers.forEach(kingdomPlayer -> {
+            for (String kingdomPlayer : kingdomPlayers) {
                 int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
                 String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
 
-                if (kingdomRole.equalsIgnoreCase("leader")) kingdomLeaderAtomic.set(kingdomPlayer);
-            });
-            String kingdomLeader = kingdomLeaderAtomic.toString();
+                if (kingdomRole.equalsIgnoreCase("leader")) {
+                    kingdomLeader = kingdomPlayer;
+                    break;
+                }
+            }
 
             String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
             String levelTitle = config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".title");
@@ -586,6 +601,9 @@ public class ModUtil {
                             .replace("{0}", playerName)
                             .replace("{1}", kingdomName));
                 }
+
+                config.getPermissions().set("permissions." + kingdomId, null);
+                config.save(config.getPermissions(), config.getPermissionsFile());
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.hasnt-permission"));
             }
@@ -764,7 +782,38 @@ public class ModUtil {
         String roleName = db.getRoles().getRoleName(roleId);
 
         int slot = 0;
-        for (String permName : db.getPermissions().getActualsPermissionsList()) {
+        for (String permName : config.getPermissions().getConfigurationSection("permissions." + kingdomId + ".roles." + roleName + ".permissions").getKeys(false)) {
+            int permId = db.getPermissions().getPermId(permName);
+            boolean hasPermission = config.getPermissions().getBoolean("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName);
+            String path = hasPermission ? "guis.kingdom-roles-editing.item-creator.has-permission" : "guis.kingdom-roles-editing.item-creator.hasnt-permission";
+
+            boolean glowing = config.getSettings().getBoolean(path + ".glowing");
+            ItemStack material = new ItemStack(Material.getMaterial(config.getSettings().getString(path + ".material")));
+            ItemMeta meta = material.getItemMeta();
+            String displayName = config.getSettings().getString(path + ".name");
+            if (!displayName.equalsIgnoreCase("null") && !displayName.equals("") && !displayName.equals(null)){
+                displayName = displayName.replace("{0}", Strings.capitalize(permName));
+                meta.setDisplayName(Colors.translateString(displayName));
+            }
+            if (glowing) {
+                meta.addEnchant(Enchantment.LURE, 0, false);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            List<String> lore = new ArrayList<>();
+            for (String line : config.getSettings().getStringList(path + ".lore")) {
+                lore.add(Colors.translateString(line
+                        .replace("{0}", Strings.capitalize(roleName))
+                        .replace("{1}", permName)
+                ));
+            }
+            meta.setLore(lore);
+            meta.setCustomModelData(permId);
+            material.setItemMeta(meta);
+
+            itemsList.put(slot, material);
+            slot++;
+        }
+        /*for (String permName : db.getPermissions().getActualsPermissionsList()) {
             int permId = db.getPermissions().getPermId(permName);
             boolean hasPermission = db.getPermissionsRoles().containsRole(kingdomId, roleId, permId);
             String path = hasPermission ? "guis.kingdom-roles-editing.item-creator.has-permission" : "guis.kingdom-roles-editing.item-creator.hasnt-permission";
@@ -794,9 +843,120 @@ public class ModUtil {
 
             itemsList.put(slot, material);
             slot++;
-        }
+        } */
 
         return itemsList;
+    }
+
+    public void setNewLead(Player leader) {
+        boolean inCooldown = changeLeadHash.containsKey(leader);
+
+        if (inCooldown) {
+            Player target = changeLeadHash.get(leader);
+            int kingdomId = db.getPlayers().getKingdomId(leader);
+
+            int leaderRoleId = config.getSettings().getInt("kingdoms.roles.leader.id");
+            int officerRoleId = config.getSettings().getInt("kingdoms.roles.officer.id");
+
+            db.getPlayers().updateRole(target, leaderRoleId);
+            db.getPlayers().updateRole(leader, officerRoleId);
+
+            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.success.confirmed"));
+            List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+
+            onlinePlayers.forEach(onlinePlayer -> {
+                onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.confirmed-broadcast")
+                        .replace("{0}", target.getName()));
+            });
+
+            changeLeadHash.remove(leader);
+        } else {
+            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.not-cooldown"));
+        }
+    }
+
+    public void preSetNewLead(Player leader, Player target) {
+        if (!config.getSettings().getBoolean("kingdoms.default-settings.block-change-lead")) {
+            if (db.getPlayers().existsPlayerData(leader)) {
+                int leaderKingdomId = db.getPlayers().getKingdomId(leader);
+
+                if (hasPermission(leader, "change-lead")) {
+                    if (db.getPlayers().existsPlayerData(target)) {
+                        int targetKingdomid = db.getPlayers().getKingdomId(target);
+
+                        if (targetKingdomid == leaderKingdomId) {
+                            boolean alreadyCooldown = false;
+                            for (Player key : changeLeadHash.keySet()) {
+                                Player value = changeLeadHash.get(key);
+
+                                if (key == leader && value == target) {
+                                    alreadyCooldown = true;
+                                    break;
+                                }
+                            }
+
+                            if (!alreadyCooldown) {
+                                changeLeadHash.put(leader, target);
+                                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-start"));
+
+                                BukkitScheduler run = Bukkit.getScheduler();
+                                run.runTaskLater(plugin, () -> {
+                                    if (changeLeadHash.containsKey(leader)) {
+                                        changeLeadHash.remove(leader, target);
+                                        leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-expired"));
+                                    }
+                                }, 20L*15L);
+                            } else {
+                                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.already-cooldown"));
+                            }
+                        } else {
+                            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-your-kingdom"));
+                        }
+                    } else {
+                        leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-a-kingdom"));
+                    }
+                } else {
+                    leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.hasnt-permission"));
+                }
+            } else {
+                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.not-in-a-kingdom"));
+            }
+        } else {
+            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.blocked-from-server"));
+        }
+    }
+
+    public void leavePlayer(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            int kingdomId = db.getPlayers().getKingdomId(player);
+
+            String kingdomLeader = null;
+            List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
+            for (String kingdomPlayer : kingdomPlayers) {
+                int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
+                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+
+                if (kingdomRole.equalsIgnoreCase("leader")) {
+                    kingdomLeader = kingdomPlayer;
+                    break;
+                }
+            }
+
+            if (!player.getName().equals(kingdomLeader)) {
+                db.getPlayers().dropPlayer(player);
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.success.leaved")
+                        .replace("{0}", db.getKingdoms().getKingdomName(kingdomId)));
+                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                onlinePlayers.forEach(onlinePlayer -> {
+                    onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.leave.info.leaved-broadcast")
+                            .replace("{0}", player.getName()));
+                });
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.you-are-the-leader"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.not-in-a-kingdom"));
+        }
     }
 
     public void visualizeChunkBorders(Player target) {
@@ -849,24 +1009,13 @@ public class ModUtil {
             if (yourClaim) {
                 for (Location spawnLocation : locationList) {
                     if (spawnLocation.getBlock().getType() == Material.AIR) {
-                        if (hasPermission(target, "use-containers")) {
-                            Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.yourclaim-canbuild-particle.name"));
-                            int amount = config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.amount");
-                            if (config.getSettings().getBoolean("settings.chunks-border.yourclaim-canbuild-particle.has-color")) {
-                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.r"), config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.g"), config.getSettings().getInt("settings.chunks-border.yourclaim-canbuild-particle.color.b")), 1.0F);
-                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
-                            } else {
-                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
-                            }
+                        Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.yourclaim-particle.name"));
+                        int amount = config.getSettings().getInt("settings.chunks-border.yourclaim-particle.amount");
+                        if (config.getSettings().getBoolean("settings.chunks-border.yourclaim-particle.has-color")) {
+                            Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.yourclaim-particle.color.r"), config.getSettings().getInt("settings.chunks-border.yourclaim-particle.color.g"), config.getSettings().getInt("settings.chunks-border.yourclaim-particle.color.b")), 1.0F);
+                            target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
                         } else {
-                            Particle particle = Particle.valueOf(config.getSettings().getString("settings.chunks-border.yourclaim-cantbuild-particle.name"));
-                            int amount = config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.amount");
-                            if (config.getSettings().getBoolean("settings.chunks-border.yourclaim-cantbuild-particle.has-color")) {
-                                Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.r"), config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.g"), config.getSettings().getInt("settings.chunks-border.yourclaim-cantbuild-particle.color.b")), 1.0F);
-                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F, dustOptions);
-                            } else {
-                                target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
-                            }
+                            target.spawnParticle(particle, spawnLocation, amount, 0.0F, 0.0F, 0.0F);
                         }
                     }
                 }
@@ -907,10 +1056,10 @@ public class ModUtil {
     public boolean hasPermission(Player player, String permName) {
         if (db.getPlayers().existsPlayerData(player)) {
             int kingdomId = db.getPlayers().getKingdomId(player);
+            int roleId = db.getPlayers().getKingdomRole(player);
+            String roleName = db.getRoles().getRoleName(roleId);
 
-            if (db.getPlayers().permissionsNameList(player, kingdomId).contains(permName)) {
-                return true;
-            }
+            return config.getPermissions().getBoolean("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName);
         }
         return false;
     }
@@ -918,10 +1067,11 @@ public class ModUtil {
     public boolean hasPermission(Player player, int permId) {
         if (db.getPlayers().existsPlayerData(player)) {
             int kingdomId = db.getPlayers().getKingdomId(player);
+            int roleId = db.getPlayers().getKingdomRole(player);
+            String permName = db.getPermissions().getPermName(permId);
+            String roleName = db.getRoles().getRoleName(roleId);
 
-            if (db.getPlayers().permissionsIdList(player, kingdomId).contains(permId)) {
-                return true;
-            }
+            return config.getPermissions().getBoolean("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName);
         }
         return false;
     }

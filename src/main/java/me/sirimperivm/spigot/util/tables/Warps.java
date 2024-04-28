@@ -53,46 +53,48 @@ public class Warps {
     }
 
     private void createTable() {
-        String query = isMysql ?
-                "CREATE TABLE " + table + "(" +
-                        "`warp_id` INT AUTO_INCREMENT NOT NULL, " +
-                        "`warp_name` VARCHAR(35) NOT NULL NULL DEFAULT 'home', " +
-                        "`warp_type` VARCHAR(25) NOT NULL DEFAULT 'home', " +
-                        "`loc_world` VARCHAR(255) NOT NULL, " +
-                        "`loc_x` DOUBLE NOT NULL, " +
-                        "`loc_y` DOUBLE NOT NULL, " +
-                        "`loc_z` DOUBLE NOT NULL, " +
-                        "`rot_y` DOUBLE NOT NULL, " +
-                        "`rot_r` DOUBLE NOT NULL, " +
-                        "`kingdom_id` INT NOT NULL, " +
-                        "PRIMARY KEY (warp_id), " +
-                        "FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                        ")" :
-                "CREATE TABLE " + table + "(" +
-                        "`warp_id` INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                        "`warp_name` VARCHAR(35) NOT NULL NULL DEFAULT 'home', " +
-                        "`warp_type` VARCHAR(255) NOT NULL DEFAULT 'home', " +
-                        "`loc_world` VARCHAR(255) NOT NULL, " +
-                        "`loc_x` DOUBLE NOT NULL, " +
-                        "`loc_y` DOUBLE NOT NULL, " +
-                        "`loc_z` DOUBLE NOT NULL, " +
-                        "`rot_y` DOUBLE NOT NULL, " +
-                        "`rot_r` DOUBLE NOT NULL, " +
-                        "`kingdom_id` INTEGER NOT NULL, " +
-                        "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE, " +
-                        ")";
+        if (!tableExists()) {
+            String query = isMysql ?
+                    "CREATE TABLE " + table + "(" +
+                            "`warp_id` INT AUTO_INCREMENT NOT NULL, " +
+                            "`warp_name` VARCHAR(35) NOT NULL NULL DEFAULT 'home', " +
+                            "`warp_type` VARCHAR(25) NOT NULL DEFAULT 'home', " +
+                            "`loc_world` VARCHAR(255) NOT NULL, " +
+                            "`loc_x` DOUBLE NOT NULL, " +
+                            "`loc_y` DOUBLE NOT NULL, " +
+                            "`loc_z` DOUBLE NOT NULL, " +
+                            "`rot_y` DOUBLE NOT NULL, " +
+                            "`rot_p` DOUBLE NOT NULL, " +
+                            "`kingdom_id` INT NOT NULL, " +
+                            "PRIMARY KEY (warp_id), " +
+                            "FOREIGN KEY (kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                            ")" :
+                    "CREATE TABLE " + table + "(" +
+                            "`warp_id` INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "`warp_name` VARCHAR(35) NOT NULL NULL DEFAULT 'home', " +
+                            "`warp_type` VARCHAR(255) NOT NULL DEFAULT 'home', " +
+                            "`loc_world` VARCHAR(255) NOT NULL, " +
+                            "`loc_x` DOUBLE NOT NULL, " +
+                            "`loc_y` DOUBLE NOT NULL, " +
+                            "`loc_z` DOUBLE NOT NULL, " +
+                            "`rot_y` DOUBLE NOT NULL, " +
+                            "`rot_p` DOUBLE NOT NULL, " +
+                            "`kingdom_id` INTEGER NOT NULL, " +
+                            "FOREIGN KEY(kingdom_id) REFERENCES kingdoms(kingdom_id) ON UPDATE CASCADE ON DELETE CASCADE" +
+                            ")";
 
-        try {
-            PreparedStatement state = conn.prepareStatement(query);
-            state.executeUpdate();
-        } catch (SQLException e) {
-            log.fail("[UltimateKingdoms] Impossibile creare la tabella " + tableName + "!");
-            e.printStackTrace();
+            try {
+                PreparedStatement state = conn.prepareStatement(query);
+                state.executeUpdate();
+            } catch (SQLException e) {
+                log.fail("[UltimateKingdoms] Impossibile creare la tabella " + tableName + "!");
+                e.printStackTrace();
+            }
         }
     }
 
     public void insertWarpData(int kingdomId, Location loc, String warpName, String warpType) {
-        String query = "INSERT INTO " + table + "(`warp_name`, `warp_type`, `loc_world`, `loc_x`, `loc_y`, `loc_z`, `rot_y`, `rot_p`, `kingdom_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT INTO " + table + "(`warp_name`, `warp_type`, `loc_world`, `loc_x`, `loc_y`, `loc_z`, `rot_y`, `rot_p`, `kingdom_id`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try {
             PreparedStatement state = conn.prepareStatement(query);

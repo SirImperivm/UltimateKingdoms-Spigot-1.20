@@ -20,8 +20,8 @@ public class ConfUtil {
     private Main plugin;
 
     private Logger log;
-    private File folder, settingsFile;
-    private FileConfiguration settings;
+    private File folder, settingsFile, permissionsFile;
+    private FileConfiguration settings, permissions;
 
     public ConfUtil(Main plugin) {
         this.plugin = plugin;
@@ -30,10 +30,13 @@ public class ConfUtil {
         folder = plugin.getDataFolder();
         settingsFile = new File(folder, "settings.yml");
         settings = new YamlConfiguration();
+        permissionsFile = new File(folder, "permissions.yml");
+        permissions = new YamlConfiguration();
 
         if (!folder.exists()) folder.mkdir();
 
         if (!settingsFile.exists()) create(settings, settingsFile);
+        if (!permissionsFile.exists()) create(permissions, permissionsFile);
 
         loadAll();
     }
@@ -68,18 +71,28 @@ public class ConfUtil {
 
     public void saveAll() {
         save(settings, settingsFile);
+        save(permissions, permissionsFile);
     }
 
     public void loadAll() {
         load(settings, settingsFile);
+        load(permissions, permissionsFile);
     }
 
     public File getSettingsFile() {
         return settingsFile;
     }
 
+    public File getPermissionsFile() {
+        return permissionsFile;
+    }
+
     public FileConfiguration getSettings() {
         return settings;
+    }
+
+    public FileConfiguration getPermissions() {
+        return permissions;
     }
 
     public String getTranslatedString(String target) {
