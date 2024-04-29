@@ -236,16 +236,12 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 return true;
                             } else {
                                 Player p = (Player) s;
-                                if (!mod.isDisabledRegion(p)) {
-                                    if (mod.getChunksBordersPlayerList().contains(p)) {
-                                        mod.getChunksBordersPlayerList().remove(p);
-                                        p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.disabled"));
-                                    } else {
-                                        mod.getChunksBordersPlayerList().add(p);
-                                        p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.actived"));
-                                    }
+                                if (mod.getChunksBordersPlayerList().contains(p)) {
+                                    mod.getChunksBordersPlayerList().remove(p);
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.disabled"));
                                 } else {
-                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
+                                    mod.getChunksBordersPlayerList().add(p);
+                                    p.sendMessage(config.getTranslatedString("messages.kingdoms.show-chunks.info.actived"));
                                 }
                             }
                         }
