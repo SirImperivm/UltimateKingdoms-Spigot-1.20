@@ -1,9 +1,11 @@
 package me.sirimperivm.spigot;
 
+import com.sk89q.worldguard.protection.flags.StateFlag;
 import me.sirimperivm.spigot.commands.Kingdoms;
 import me.sirimperivm.spigot.commands.KingdomsAdmin;
 import me.sirimperivm.spigot.events.Event;
 import me.sirimperivm.spigot.extras.PapiExpansion;
+import me.sirimperivm.spigot.extras.WorldGuardExpansion;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
@@ -29,6 +31,12 @@ public final class Main extends JavaPlugin {
     private int serverVersion;
 
     private PapiExpansion papi;
+    private WorldGuardExpansion wge;
+
+    private boolean foudWg = false;
+
+    private StateFlag kingdom_access;
+
     void setupDependencies() {
         if (getPluginManager().getPlugin("PlaceholderAPI") != null) {
             log.success("&d!! SoftDependency trovata: PlaceholderAPI !!");
@@ -39,10 +47,19 @@ public final class Main extends JavaPlugin {
     }
 
     @Override
-    public void onEnable() {
+    public void onLoad() {
         plugin = this;
-        serverVersion = getBukkitVersion();
         log = new Logger(plugin);
+        if (getPluginManager().getPlugin("WorldGuard") != null) {
+            wge = new WorldGuardExpansion(plugin);
+            foudWg = true;
+            kingdom_access = wge.getKingdom_access();
+        }
+    }
+
+    @Override
+    public void onEnable() {
+        serverVersion = getBukkitVersion();
         config = new ConfUtil(plugin);
         errors = new Errors(plugin);
         db = new DBUtil(plugin);
@@ -79,6 +96,18 @@ public final class Main extends JavaPlugin {
 
     public Logger getLog() {
         return log;
+    }
+
+    public WorldGuardExpansion getWge() {
+        return wge;
+    }
+
+    public StateFlag getKingdom_access() {
+        return kingdom_access;
+    }
+
+    public boolean isFoudWg() {
+        return foudWg;
     }
 
     public ConfUtil getCM() {

@@ -304,6 +304,7 @@ messages:
         page-not-found: "&8[&c!&8] &cPagina scelta non trovata."
         kingdom-not-exists: "&8[&c!&8] &cIl regno scelto non esiste."
         prevent-theif: "&8[&c!&8] &cNon puoi piazzare blocchi interagibili con containers se non hai il permesso adatto nel regno."
+        action-prevented-region: "&8[&c!&8] &cQuesta regione non permette quest'azione."
     creation:
       error:
         already-exists: "&8[&c!&8] &cE' già presente un regno con questo nome."

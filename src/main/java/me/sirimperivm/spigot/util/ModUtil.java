@@ -1,5 +1,12 @@
 package me.sirimperivm.spigot.util;
 
+import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.StateFlag;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
 import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.entities.Chunk;
 import me.sirimperivm.spigot.entities.Gui;
@@ -259,23 +266,27 @@ public class ModUtil {
     public void setKingdomHome(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "set-home")) {
-                int kingdomId = db.getPlayers().getKingdomId(player);
-                Location loc = player.getLocation();
-                Chunk chunk = new Chunk(plugin, loc);
+                if (!isDisabledRegion(player)) {
+                    int kingdomId = db.getPlayers().getKingdomId(player);
+                    Location loc = player.getLocation();
+                    Chunk chunk = new Chunk(plugin, loc);
 
-                if (db.getChunks().existChunk(chunk)) {
-                    if (db.getWarps().existWarpData(kingdomId, "home", "home")) {
-                        db.getWarps().dropWarpData(kingdomId, "home", "home");
+                    if (db.getChunks().existChunk(chunk)) {
+                        if (db.getWarps().existWarpData(kingdomId, "home", "home")) {
+                            db.getWarps().dropWarpData(kingdomId, "home", "home");
+                        }
+                        db.getWarps().insertWarpData(kingdomId, loc, "home", "home");
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.success.home-set"));
+
+                        List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                        onlineMembers.forEach(online -> {
+                            online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.info.home-set-broadcast"));
+                        });
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.not-in-your-claim"));
                     }
-                    db.getWarps().insertWarpData(kingdomId, loc, "home", "home");
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.success.home-set"));
-
-                    List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
-                    onlineMembers.forEach(online -> {
-                        online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.info.home-set-broadcast"));
-                    });
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.not-in-your-claim"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.sethome.error.hasnt-permission"));
@@ -288,25 +299,29 @@ public class ModUtil {
     public void setKingdomWarp(Player player, String warpName) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "set-warps")) {
-                int kingdomId = db.getPlayers().getKingdomId(player);
-                Location loc = player.getLocation();
-                Chunk chunk = new Chunk(plugin, loc);
+                if (!isDisabledRegion(player)) {
+                    int kingdomId = db.getPlayers().getKingdomId(player);
+                    Location loc = player.getLocation();
+                    Chunk chunk = new Chunk(plugin, loc);
 
-                if (db.getChunks().existChunk(chunk)) {
-                    if (db.getWarps().existWarpData(kingdomId, "warp", warpName)) {
-                        db.getWarps().dropWarpData(kingdomId, "warp",warpName);
-                    }
-                    db.getWarps().insertWarpData(kingdomId, loc, warpName, "warp");
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.success.warp-set")
-                            .replace("{0}", warpName));
-
-                    List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
-                    onlineMembers.forEach(online -> {
-                        online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.info.warp-set-broadcast")
+                    if (db.getChunks().existChunk(chunk)) {
+                        if (db.getWarps().existWarpData(kingdomId, "warp", warpName)) {
+                            db.getWarps().dropWarpData(kingdomId, "warp", warpName);
+                        }
+                        db.getWarps().insertWarpData(kingdomId, loc, warpName, "warp");
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.success.warp-set")
                                 .replace("{0}", warpName));
-                    });
+
+                        List<Player> onlineMembers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                        onlineMembers.forEach(online -> {
+                            online.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.info.warp-set-broadcast")
+                                    .replace("{0}", warpName));
+                        });
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.not-in-your-claim"));
+                    }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.not-in-your-claim"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.warps.setwarp.error.hasnt-permission"));
@@ -403,21 +418,25 @@ public class ModUtil {
     public void unclaimAllChunks(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "release-all-territories")) {
-                if (!releaseAllCooldown.contains(player)) {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.warning"));
-                    releaseAllCooldown.add(player);
+                if (!isDisabledRegion(player)) {
+                    if (!releaseAllCooldown.contains(player)) {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.warning"));
+                        releaseAllCooldown.add(player);
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (releaseAllCooldown.contains(player)) {
-                                releaseAllCooldown.remove(player);
-                                player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.expired"));
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if (releaseAllCooldown.contains(player)) {
+                                    releaseAllCooldown.remove(player);
+                                    player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.info.expired"));
+                                }
                             }
-                        }
-                    }.runTaskLater(plugin, 20L * 10L);
+                        }.runTaskLater(plugin, 20L * 10L);
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.already-set"));
+                    }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.already-set"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.unclaim-all.error.hasnt-permission"));
@@ -577,21 +596,25 @@ public class ModUtil {
         String playerName = player.getName();
         if (kingdomHash.containsKey(playerName)) {
             if (hasPermission(player, "disband")) {
-                if (!disbandCooldown.contains(player)) {
-                    disbandCooldown.add(player);
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-start"));
+                if (!isDisabledRegion(player)) {
+                    if (!disbandCooldown.contains(player)) {
+                        disbandCooldown.add(player);
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-start"));
 
-                    new BukkitRunnable() {
-                        @Override
-                        public void run() {
-                            if (disbandCooldown.contains(player)) {
-                                disbandCooldown.remove(player);
-                                player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-expired"));
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if (disbandCooldown.contains(player)) {
+                                    disbandCooldown.remove(player);
+                                    player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-expired"));
+                                }
                             }
-                        }
-                    }.runTaskLater(plugin, 20 * 10L);
+                        }.runTaskLater(plugin, 20 * 10L);
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.cooldown-already-started"));
+                    }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.cooldown-already-started"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.hasnt-permission"));
@@ -634,30 +657,34 @@ public class ModUtil {
     public void claimChunk(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "expand-territory")) {
-                Kingdom playerKingdom = getPlayerKingdom(player);
-                String kingdomName = playerKingdom.getKingdomName();
+                if (!isDisabledRegion(player)) {
+                    Kingdom playerKingdom = getPlayerKingdom(player);
+                    String kingdomName = playerKingdom.getKingdomName();
 
-                int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
-                int maxClaimableChunks = config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".max-claimable-chunks");
-                int claimedChunks = db.getChunks().getClaimedChunks(kingdomId);
+                    int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
+                    String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                    int maxClaimableChunks = config.getSettings().getInt("kingdoms.levels." + kingdomLevel + ".max-claimable-chunks");
+                    int claimedChunks = db.getChunks().getClaimedChunks(kingdomId);
 
-                Chunk chunk = new Chunk(plugin, player, player.getLocation());
-                if (!db.getChunks().existChunk(chunk)) {
-                    if (claimedChunks < maxClaimableChunks) {
-                        double claimingCost = config.getSettings().getDouble("kingdoms.costs.claiming");
-                        double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
-                        if (kingdomGold >= claimingCost) {
-                            chunk.obtainChunk();
+                    Chunk chunk = new Chunk(plugin, player, player.getLocation());
+                    if (!db.getChunks().existChunk(chunk)) {
+                        if (claimedChunks < maxClaimableChunks) {
+                            double claimingCost = config.getSettings().getDouble("kingdoms.costs.claiming");
+                            double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
+                            if (kingdomGold >= claimingCost) {
+                                chunk.obtainChunk();
+                            } else {
+                                player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-enough-gold")
+                                        .replace("{0}", Strings.formatNumber(claimingCost, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"))));
+                            }
                         } else {
-                            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-enough-gold")
-                                    .replace("{0}", Strings.formatNumber(claimingCost, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"))));
+                            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
                         }
                     } else {
-                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-already-exist"));
                     }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-already-exist"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
@@ -670,17 +697,21 @@ public class ModUtil {
     public void unclaimChunk(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "expand-territory")) {
-                Chunk chunk = new Chunk(plugin, player, player.getLocation());
-                Kingdom playerKingdom = getPlayerKingdom(player);
+                if (!isDisabledRegion(player)) {
+                    Chunk chunk = new Chunk(plugin, player, player.getLocation());
+                    Kingdom playerKingdom = getPlayerKingdom(player);
 
-                if (chunk.getKingdomId() == db.getKingdoms().getKingdomId(playerKingdom.getKingdomName())) {
-                    if (db.getChunks().existChunk(chunk)) {
-                        chunk.unclaimChunk(chunk);
+                    if (chunk.getKingdomId() == db.getKingdoms().getKingdomId(playerKingdom.getKingdomName())) {
+                        if (db.getChunks().existChunk(chunk)) {
+                            chunk.unclaimChunk(chunk);
+                        } else {
+                            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-not-found"));
+                        }
                     } else {
-                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.claim-not-found"));
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.isnt-your.kingdom"));
                     }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.isnt-your.kingdom"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.hasnt-permission"));
@@ -693,8 +724,12 @@ public class ModUtil {
     public void sendDepositGui(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "deposit")) {
-                Gui gui = new Gui(plugin, "kingdom-deposit", createItemsList("guis.kingdom-deposit"));
-                gui.sendGui(player);
+                if (!isDisabledRegion(player)) {
+                    Gui gui = new Gui(plugin, "kingdom-deposit", createItemsList("guis.kingdom-deposit"));
+                    gui.sendGui(player);
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
+                }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.hasnt-permission"));
             }
@@ -706,28 +741,32 @@ public class ModUtil {
     public void rankupKingdom(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
             if (hasPermission(player, "manage-ranks")) {
-                int kingdomId = db.getPlayers().getKingdomId(player);
+                if (!isDisabledRegion(player)) {
+                    int kingdomId = db.getPlayers().getKingdomId(player);
 
-                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
-                String nextLevel = config.getSettings().getBoolean("kingdoms.levels." + kingdomLevel + ".rankup.allowed") ? config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".rankup.next") : null;
+                    String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                    String nextLevel = config.getSettings().getBoolean("kingdoms.levels." + kingdomLevel + ".rankup.allowed") ? config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".rankup.next") : null;
 
-                if (nextLevel != null) {
-                    double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
-                    double cost = config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost");
+                    if (nextLevel != null) {
+                        double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
+                        double cost = config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost");
 
-                    if (kingdomGold >= cost) {
-                        double newBalance = kingdomGold-cost;
-                        db.getKingdoms().updateLevel(kingdomId, nextLevel);
-                        db.getKingdoms().updateKingdomGold(kingdomId, newBalance);
+                        if (kingdomGold >= cost) {
+                            double newBalance = kingdomGold - cost;
+                            db.getKingdoms().updateLevel(kingdomId, nextLevel);
+                            db.getKingdoms().updateKingdomGold(kingdomId, newBalance);
 
-                        player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.success.rankup"));
-                        List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
-                        onlinePlayers.forEach(onlinePlayer -> {
-                            onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.info.rankup-broadcast"));
-                        });
+                            player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.success.rankup"));
+                            List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                            onlinePlayers.forEach(onlinePlayer -> {
+                                onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.info.rankup-broadcast"));
+                            });
+                        }
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.there-are-no-ranks"));
                     }
                 } else {
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.there-are-no-ranks"));
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                 }
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.hasnt-permission"));
@@ -804,6 +843,33 @@ public class ModUtil {
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.error.not-in-a-kingdom"));
         }
+    }
+
+    public boolean isDisabledRegion(Player player) {
+        boolean foundWg = plugin.isFoudWg();
+        boolean inDisabledRegion = false;
+
+        LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
+        com.sk89q.worldedit.util.Location loc = localPlayer.getLocation();
+        BlockVector3 vector3 = loc.toVector().toBlockPoint();
+
+        RegionContainer container = plugin.getWge().getApi().getPlatform().getRegionContainer();
+        RegionManager regions = container.get(localPlayer.getWorld());
+
+        for (ProtectedRegion region : regions.getApplicableRegions(vector3)) {
+            String regionId = region.getId();
+            if (region != null) {
+                StateFlag kingdom_access = plugin.getKingdom_access();
+                if (region.getFlag(kingdom_access) != null) {
+                    if (region.getFlag(kingdom_access) == StateFlag.State.DENY) {
+                        inDisabledRegion = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return (!foundWg) || (foundWg && !inDisabledRegion);
     }
 
     private HashMap<Integer, ItemStack> createItemsList(String guiPosition) {
@@ -910,39 +976,43 @@ public class ModUtil {
                 int leaderKingdomId = db.getPlayers().getKingdomId(leader);
 
                 if (hasPermission(leader, "change-lead")) {
-                    if (db.getPlayers().existsPlayerData(target)) {
-                        int targetKingdomid = db.getPlayers().getKingdomId(target);
+                    if (!isDisabledRegion(leader)) {
+                        if (db.getPlayers().existsPlayerData(target)) {
+                            int targetKingdomid = db.getPlayers().getKingdomId(target);
 
-                        if (targetKingdomid == leaderKingdomId) {
-                            boolean alreadyCooldown = false;
-                            for (Player key : changeLeadHash.keySet()) {
-                                Player value = changeLeadHash.get(key);
+                            if (targetKingdomid == leaderKingdomId) {
+                                boolean alreadyCooldown = false;
+                                for (Player key : changeLeadHash.keySet()) {
+                                    Player value = changeLeadHash.get(key);
 
-                                if (key == leader && value == target) {
-                                    alreadyCooldown = true;
-                                    break;
-                                }
-                            }
-
-                            if (!alreadyCooldown) {
-                                changeLeadHash.put(leader, target);
-                                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-start"));
-
-                                BukkitScheduler run = Bukkit.getScheduler();
-                                run.runTaskLater(plugin, () -> {
-                                    if (changeLeadHash.containsKey(leader)) {
-                                        changeLeadHash.remove(leader, target);
-                                        leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-expired"));
+                                    if (key == leader && value == target) {
+                                        alreadyCooldown = true;
+                                        break;
                                     }
-                                }, 20L*15L);
+                                }
+
+                                if (!alreadyCooldown) {
+                                    changeLeadHash.put(leader, target);
+                                    leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-start"));
+
+                                    BukkitScheduler run = Bukkit.getScheduler();
+                                    run.runTaskLater(plugin, () -> {
+                                        if (changeLeadHash.containsKey(leader)) {
+                                            changeLeadHash.remove(leader, target);
+                                            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.info.cooldown-expired"));
+                                        }
+                                    }, 20L * 15L);
+                                } else {
+                                    leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.already-cooldown"));
+                                }
                             } else {
-                                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.already-cooldown"));
+                                leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-your-kingdom"));
                             }
                         } else {
-                            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-your-kingdom"));
+                            leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-a-kingdom"));
                         }
                     } else {
-                        leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.target-not-in-a-kingdom"));
+                        leader.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
                     }
                 } else {
                     leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.hasnt-permission"));
@@ -978,31 +1048,35 @@ public class ModUtil {
 
     public void leavePlayer(Player player) {
         if (db.getPlayers().existsPlayerData(player)) {
-            int kingdomId = db.getPlayers().getKingdomId(player);
+            if (!isDisabledRegion(player)) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
 
-            String kingdomLeader = null;
-            List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
-            for (String kingdomPlayer : kingdomPlayers) {
-                int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
-                String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
+                String kingdomLeader = null;
+                List<String> kingdomPlayers = db.getKingdoms().getKingdomPlayers(kingdomId);
+                for (String kingdomPlayer : kingdomPlayers) {
+                    int kingdomRoleId = db.getPlayers().getKingdomRole(kingdomPlayer);
+                    String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
 
-                if (kingdomRole.equalsIgnoreCase("leader")) {
-                    kingdomLeader = kingdomPlayer;
-                    break;
+                    if (kingdomRole.equalsIgnoreCase("leader")) {
+                        kingdomLeader = kingdomPlayer;
+                        break;
+                    }
                 }
-            }
 
-            if (!player.getName().equals(kingdomLeader)) {
-                db.getPlayers().dropPlayer(player);
-                player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.success.leaved")
-                        .replace("{0}", db.getKingdoms().getKingdomName(kingdomId)));
-                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
-                onlinePlayers.forEach(onlinePlayer -> {
-                    onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.leave.info.leaved-broadcast")
-                            .replace("{0}", player.getName()));
-                });
+                if (!player.getName().equals(kingdomLeader)) {
+                    db.getPlayers().dropPlayer(player);
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.success.leaved")
+                            .replace("{0}", db.getKingdoms().getKingdomName(kingdomId)));
+                    List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                    onlinePlayers.forEach(onlinePlayer -> {
+                        onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.leave.info.leaved-broadcast")
+                                .replace("{0}", player.getName()));
+                    });
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.you-are-the-leader"));
+                }
             } else {
-                player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.you-are-the-leader"));
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.general.action-prevented-region"));
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.not-in-a-kingdom"));
