@@ -76,6 +76,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 return true;
                             } else {
                                 Player p = (Player) s;
+                                mod.preDisbandPlayerKingdom(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("disband-confirm")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.disband"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
                                 mod.disbandPlayerKingdom(p);
                             }
                         }
@@ -123,6 +134,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                 mod.leavePlayer(p);
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("chat")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.chat"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.insertPlayerChat(p);
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("claims")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
                             return true;
@@ -143,6 +165,17 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             } else {
                                 Player p = (Player) s;
                                 mod.setNewLead(p);
+                            }
+                        }
+                    } else if (a[0].equalsIgnoreCase("rankup")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                mod.rankupKingdom(p);
                             }
                         }
                     } else if (a[0].equalsIgnoreCase("unclaim")) {
@@ -401,6 +434,22 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.rankup"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "manage-ranks")) {
+                            toReturn.add("rankup");
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.chat"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "use-chat")) {
+                            toReturn.add("chat");
+                        }
+                    }
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;
@@ -478,7 +527,19 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                     if (s instanceof Player) {
                         Player player = (Player) s;
                         if (mod.hasPermission(player, "disband")) {
-                            toReturn.add("disband");
+                            if (!mod.getDisbandCooldown().contains(player)) {
+                                toReturn.add("disband");
+                            }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.disband"))) {
+                    if (s instanceof Player) {
+                        Player player = (Player) s;
+                        if (mod.hasPermission(player, "disband")) {
+                            if (mod.getDisbandCooldown().contains(player)) {
+                                toReturn.add("disband-confirm");
+                            }
                         }
                     }
                 }

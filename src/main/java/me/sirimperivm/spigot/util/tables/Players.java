@@ -5,8 +5,6 @@ import me.sirimperivm.spigot.util.other.Logger;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @SuppressWarnings("all")
 public class Players {
@@ -239,65 +237,5 @@ public class Players {
             e.printStackTrace();
         }
         return value;
-    }
-
-    public List<String> permissionsNameList(Player player, int kingdomId) {
-        List<String> permList = new ArrayList<>();
-        String playerName = player.getName();
-
-        String query =
-                "SELECT perm_name " +
-                "FROM players,roles,permissions,permissions_roles " +
-                "WHERE players.kingdom_role=roles.kingdom_role AND " +
-                "permissions_roles.kingdom_role=roles.kingdom_role AND " +
-                "permissions_roles.perm_id=permissions.perm_id AND " +
-                "players.player_name=? AND " +
-                "players.kingdom_id=?"
-        ;
-
-        try {
-            PreparedStatement state = conn.prepareStatement(query);
-            state.setString(1, playerName);
-            state.setInt(2, kingdomId);
-            ResultSet rs = state.executeQuery();
-            while (rs.next()) {
-                permList.add(rs.getString("perm_name"));
-            }
-        } catch (SQLException e) {
-            log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei permessi per l'utente " + playerName + "!");
-            e.printStackTrace();
-        }
-
-        return permList;
-    }
-
-    public List<Integer> permissionsIdList(Player player, int kingdomId) {
-        List<Integer> permList = new ArrayList<>();
-        String playerName = player.getName();
-
-        String query =
-                "SELECT perm_id " +
-                "FROM players,roles,permissions,permissions_roles " +
-                "WHERE players.kingdom_role=roles.kingdom_role AND " +
-                "permissions_roles.kingdom_role=roles.kingdom_role AND " +
-                "permissions_roles.perm_id=permissions.perm_id AND " +
-                "players.player_name? AND " +
-                "players.kingdom_id=?"
-        ;
-
-        try {
-            PreparedStatement state = conn.prepareStatement(query);
-            state.setString(1, playerName);
-            state.setInt(2, kingdomId);
-            ResultSet rs = state.executeQuery();
-            while (rs.next()) {
-                permList.add(rs.getInt("perm_id"));
-            }
-        } catch (SQLException e) {
-            log.fail("[UltimateKingdoms] Impossibile ottenere la lista dei permessi per l'utente " + playerName + "!");
-            e.printStackTrace();
-        }
-
-        return permList;
     }
 }

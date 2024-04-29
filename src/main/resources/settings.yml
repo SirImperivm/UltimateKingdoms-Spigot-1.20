@@ -184,13 +184,14 @@ kingdoms:
         open-doors: true
         invite-players: true
         expel-players: true
-        can-rankup-kingdom: true
         change-lead: true
         use-warps: true
         set-warps: true
         manage-players: true
+        manage-ranks: true
         manage-roles: true
         deposit: true
+        use-chat: true
         expand-territory: true
         show-territories: true
         release-all-territories: true
@@ -208,13 +209,14 @@ kingdoms:
         open-doors: true
         invite-players: true
         expel-players: true
-        can-rankup-kingdom: true
         change-lead: false
         use-warps: true
         set-warps: true
         manage-players: true
+        manage-ranks: true
         manage-roles: false
         deposit: true
+        use-chat: true
         expand-territory: true
         show-territories: true
         release-all-territories: false
@@ -232,13 +234,14 @@ kingdoms:
         open-doors: true
         invite-players: false
         expel-players: false
-        can-rankup-kingdom: false
         change-lead: false
         use-warps: true
         set-warps: false
         manage-players: false
+        manage-ranks: false
         manage-roles: false
         deposit: true
+        use-chat: true
         expand-territory: false
         show-territories: false
         release-all-territories: false
@@ -256,13 +259,14 @@ kingdoms:
         open-doors: true
         invite-players: false
         expel-players: false
-        can-rankup-kingdom: false
         change-lead: false
         use-warps: true
         set-warps: false
         manage-players: false
+        manage-ranks: false
         manage-roles: false
         deposit: false
+        use-chat: true
         expand-territory: false
         show-territories: false
         release-all-territories: false
@@ -272,6 +276,11 @@ kingdoms:
     enemy-pvp: false
     enderman-grief: true
     block-change-lead: false
+  costs:
+    claiming: 100.0
+  kingdoms-chat:
+    default: "&f[&6KC&f] &5{role_tag}{role_name} &f{player} &8» &f{message}"
+    spy: "&f[&6KC-Spy&f] &a{kingdom_name} &5{role_tag}{role_name} &f{player} &8» &f{message}"
 
 messages:
   errors:
@@ -282,6 +291,9 @@ messages:
   admin:
     plugin:
       reloaded: "&8[&a!&8] &aPlugin ricaricato con successo."
+    spy-chat:
+      enabled: "&8[&a!&8] &aSpychat &2Abilitata&a."
+      disabled: "&8[&a!&8] &aSpychat &2Disabilitata&a."
     bypass:
       enabled: "&8[&e!&8] &eSistema bypass territori &aAttivato&e."
       disabled: "&8[&e!&8] &eSistema bypass territori &cDisattivato&e."
@@ -304,6 +316,11 @@ messages:
       error:
         not-have: "&8[&c!&8] &cNon hai nessun regno da eliminare."
         hasnt-permission: "&8[&c!&8] &cNon puoi eliminare il tuo regno."
+        cooldown-already-started: "&8[&c!&8] &cSei già in fase di cooldown."
+        nothing-to-confirm: "&8[&c!&8] &cNon hai alcun azione da confermare."
+      info:
+        cooldown-start: "&8[&e!&8] &eQuest'azione necessita di una conferma, esegui con &6/kg disband-confirm&e."
+        cooldown-expired: "&8[&e!&8] &eQuest'azione necessita di una conferma, esegui con &6/kg disband-confirm&e."
       success:
         disbanded: "&8[&a!&8] &aRegno &2{0}&a eliminato!"
         disbanded-broadcast: "&8[&5!!&8] &dL'utente &5{0}&d ha eliminato il regno &5{1}&d."
@@ -362,6 +379,7 @@ messages:
         claim-not-found: "&8[&c!&8] &cClaim non trovato."
         claim-already-exist: "&8[&c!&8] &cC'è già un claim in quel chunk."
         isnt-your-kingdom: "&8[&c!&8] &cNon puoi togliere i claim di un altro regno."
+        not-enough-gold: "&8[&c!&8] &cIl tuo regno necessita di &4{0} &cd'oro per claimare."
     deposit:
       success:
         deposited: "&8[&a!&8] &aHai depositato &2{0}&a d'oro nel tuo regno."
@@ -472,6 +490,27 @@ messages:
         blocked-from-server: "&8[&c!&8] &cIn questo server non accettiamo il cambio leader."
         target-not-in-a-kingdom: "&8[&c!&8] &cL'utente scelto non ha un regno."
         target-not-in-your-kingdom: "&8[&c!&8] &cL'utente scelto non fa parte del tuo regno."
+    rankup:
+      success:
+        rankup: "&8[&a!&8] &aRegno rankato con successo."
+      info:
+        rankup-broadcast: "&8[&e!&8] &eIl tuo regno è salito di rank."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon puoi far rankare il tuo regno."
+        there-are-no-ranks: "&8[&c!&8] &cIl tuo regno non può rankare ancora di più."
+    chat:
+      other:
+        public-format: "&fPubblica"
+        kingdom-format: "&6Regno"
+      success:
+        switched: "&8[&a!&8] &aChat impostata su: {0}&a."
+      info:
+        switched: "&8[&e!&8] &eChat reimpostata su: {0}&e."
+      error:
+        not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
+        hasnt-permission: "&8[&c!&8] &cNon hai accesso alla chat del regno."
+        permission-removed: "&8[&c!&8] &cTi è stato rimosso il permesso di usare la chat del regno, ti è stata reimpostata."
 
 helps:
   commands:
@@ -484,6 +523,8 @@ helps:
       - "&3/&bkg sethome &7- &3Imposti la home del tuo regno."
       - "&3/&bkg home &7- &3Raggiungi la home del tuo regno."
       - "&3/&bkg showchunks &7- &3Mostra lo stato dei chunk."
+      - "&3/&bkg rankup &7- &3Fa salire di rank il tuo regno."
+      - "&3/&bkg chat &7- &3Scegli il tipo di chat tra &6Kingdom &3e &fPublic&3."
       - "&3/&bkg leave &7- &3Esci da un regno."
       - "&3/&bkg unclaim &7- &3Rilasci un chunk 16x16 di territorio del tuo regno."
       - "&3/&bkg unclaimall &7- &3Rilasci tutti i territori ottenuti."
@@ -499,6 +540,7 @@ helps:
       - "&3/&bkg changerole &a<nomeplayer> <nomeruolo> &7- &3Imposti un ruolo ad un utente del tuo regno."
     admin:
       - "&4/&ckga reload &7- &4Ricarica il config del plugin."
+      - "&4/&ckga spy-chat &7- &4Abiliti/Disabiliti la spychat dei regni."
       - "&4/&ckga bypass &7- &4Bypassi il sistema di territori."
 
 formats-lists:
@@ -541,6 +583,7 @@ permissions:
       leave: kingdoms.use
       setwarp: kingdoms.use
       warp: kingdoms.use
+      chat: kingdoms.use
       change-role: kingdoms.use
       claim: kingdoms.use
       changelead: kingdoms.use
@@ -548,6 +591,7 @@ permissions:
       unclaim: kingdoms.use
       unclaimall: kingdoms.use
       showchunks: kingdoms.use
+      rankup: kingdoms.use
       permissions: kingdoms.use
       deposit: kingdoms.use
       list: kingdoms.use
@@ -555,6 +599,7 @@ permissions:
     admin:
       main: kingdoms.admin
       reload: kingdoms.admin
+      spy-chat: kingdoms.admin
       bypass: kingdoms.admin
   events:
     test-string: kingdoms.testring

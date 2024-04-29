@@ -113,6 +113,20 @@ public class Kingdoms {
         }
     }
 
+    public void updateLevel(int kingdomId, String level) {
+        String query = "UPDATE " + table + " SET kingdomLevel=? WHERE kingdom_id=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, level);
+            state.setInt(2, kingdomId);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile aggiornare la il livello del regno: " + getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+    }
+
     public void updateKingdomGold(int kingdomId, double goldAmount) {
         String query = "UPDATE " + table + " SET goldAmount=? WHERE kingdom_id=?";
 

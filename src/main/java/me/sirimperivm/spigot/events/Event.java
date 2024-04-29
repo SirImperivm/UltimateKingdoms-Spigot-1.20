@@ -31,10 +31,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("all")
 public class Event implements Listener {
@@ -92,13 +89,13 @@ public class Event implements Listener {
                             int rows = config.getSettings().getInt("guis.kingdom-roles-editing.rows");
                             if (slots < 10) {
                                 rows = 1;
-                            } else if (slots > 10 && slots < 19) {
+                            } else if (slots >= 10 && slots < 19) {
                                 rows = 2;
-                            } else if (slots > 19 && slots < 28) {
+                            } else if (slots >= 19 && slots < 28) {
                                 rows = 3;
-                            } else if (slots > 28 && slots < 37) {
+                            } else if (slots >= 28 && slots < 37) {
                                 rows = 4;
-                            } else if (slots > 37 && slots < 46) {
+                            } else if (slots >= 37 && slots < 46) {
                                 rows = 5;
                             } else {
                                 rows = 6;
@@ -147,21 +144,6 @@ public class Event implements Listener {
                             break;
                         }
                     }
-                    /*
-                    for (String permName : db.getPermissions().getActualsPermissionsList()) {
-                        int permId = db.getPermissions().getPermId(permName);
-                        if (clickedPermId == permId) {
-                            boolean containsRole = db.getPermissionsRoles().containsRole(kingdomId, roleId, permId);
-
-                            if (containsRole) {
-                                db.getPermissionsRoles().takePerm(kingdomId, roleId, permId);
-                            } else {
-                                db.getPermissionsRoles().insertPerm(kingdomId, roleId, permId);
-                            }
-
-                            break;
-                        }
-                    } */
                     HashMap<Integer, ItemStack> itemsList = mod.createRolesEditingItemsList(kingdomId, roleId);
 
                     player.closeInventory();
@@ -172,13 +154,13 @@ public class Event implements Listener {
                     int rows = config.getSettings().getInt("guis.kingdom-roles-editing.rows");
                     if (slots < 10) {
                         rows = 1;
-                    } else if (slots > 10 && slots < 19) {
+                    } else if (slots >= 10 && slots < 19) {
                         rows = 2;
-                    } else if (slots > 19 && slots < 28) {
+                    } else if (slots >= 19 && slots < 28) {
                         rows = 3;
-                    } else if (slots > 28 && slots < 37) {
+                    } else if (slots >= 28 && slots < 37) {
                         rows = 4;
-                    } else if (slots > 37 && slots < 46) {
+                    } else if (slots >= 37 && slots < 46) {
                         rows = 5;
                     } else {
                         rows = 6;
@@ -611,13 +593,50 @@ public class Event implements Listener {
         String message = e.getMessage();
 
         if (message.startsWith("->testString:")) {
-            if (errors.noPermAction(p, config.getSettings().getString("permissions.events.test-string"))) {
-                return;
-            } else {
+            if (!errors.noPermAction(p, config.getSettings().getString("permissions.events.test-string"))) {
                 e.setCancelled(true);
                 String testString = message.split("->testString:")[1];
                 p.sendMessage(Colors.translateString(testString));
             }
+            return;
+        }
+
+        if (mod.getKingdomsChatPlayerList().contains(p)) {
+            if (mod.hasPermission(p, "use-chat")) {
+                e.setCancelled(true);
+                int kingdomId = db.getPlayers().getKingdomId(p);
+                String kingdomName = db.getKingdoms().getKingdomName(kingdomId);
+
+                String kingdomRole = db.getRoles().getRoleName(kingdomId);
+                String kingdomRoleTag = config.getTranslatedString("kingdoms.roles." + kingdomRole + ".chat-tag");
+
+                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                onlinePlayers.forEach(onlinePlayer -> {
+                    onlinePlayer.sendMessage(config.getTranslatedString("kingdoms.kingdoms-chat.default")
+                            .replace("{role_tag}", Colors.translateString(kingdomRoleTag))
+                            .replace("{role_name}", Colors.translateString(Strings.capitalize(kingdomRole)))
+                            .replace("{player}", p.getName())
+                            .replace("{message}", message));
+                });
+
+                List<Player> spies = mod.getKingdomsChatSpiesList();
+                spies.forEach(spy -> {
+                    if (spy != p) {
+                        spy.sendMessage(config.getTranslatedString("kingdoms.kingdoms-chat.spy")
+                                .replace("{kingdom_name}", Colors.translateString(kingdomName))
+                                .replace("{role_tag}", Colors.translateString(kingdomRoleTag))
+                                .replace("{role_name}", Colors.translateString(Strings.capitalize(kingdomRole)))
+                                .replace("{player}", p.getName())
+                                .replace("{message}", message));
+                    }
+                });
+            } else {
+                mod.getKingdomsChatPlayerList().remove(p);
+                String format = config.getSettings().getString("messages.kingdoms.chat.other.public-format");
+                p.sendMessage(config.getTranslatedString("messages.kingdoms.chat.info.switched").replace("{0}", Colors.translateString(format)));
+                p.sendMessage(config.getTranslatedString("messages.kingdoms.chat.error.permission-removed"));
+            }
+            return;
         }
     }
 }

@@ -35,6 +35,10 @@ public class ModUtil {
     private List<Player> chunksBordersPlayerList;
     private List<Player> bypassPlayerList;
     private List<Player> releaseAllCooldown;
+    private List<Player> disbandCooldown;
+
+    private List<Player> kingdomsChatPlayerList;
+    private List<Player> kingdomsChatSpiesList;
 
     public ModUtil(Main plugin) {
         this.plugin = plugin;
@@ -49,6 +53,9 @@ public class ModUtil {
         changeLeadHash = new HashMap<>();
         bypassPlayerList = new ArrayList<>();
         releaseAllCooldown = new ArrayList<>();
+        disbandCooldown = new ArrayList<>();
+        kingdomsChatPlayerList = new ArrayList<>();
+        kingdomsChatSpiesList = new ArrayList<>();
     }
 
     public void setupSettings() {
@@ -92,18 +99,6 @@ public class ModUtil {
                 boolean value = config.getSettings().getBoolean("kingdoms.roles." + role + ".default-permissions." + permName);
                 config.getPermissions().set("permissions." + kingdomId + ".roles." + role + ".permissions." + permName, value);
             }
-            /*if (db.getRoles().existsRoleData(role)) {
-                int roleId = config.getSettings().getInt("kingdoms.roles." + role + ".id");
-
-                for (String permission : config.getSettings().getConfigurationSection("kingdoms.roles." + role + ".default-permissions").getKeys(false)) {
-                    boolean permValue = config.getSettings().getBoolean("kingdoms.roles." + role + ".default-permissions." + permission);
-
-                    if (permValue) {
-                        int permId = db.getPermissions().getPermId(permission);
-                        db.getPermissionsRoles().insertPerm(kingdomId, roleId, permId);
-                    }
-                }
-            } */
         }
 
         config.save(config.getPermissions(), config.getPermissionsFile());
@@ -578,37 +573,61 @@ public class ModUtil {
         }
     }
 
-    public void disbandPlayerKingdom(Player player) {
+    public void preDisbandPlayerKingdom(Player player) {
         String playerName = player.getName();
         if (kingdomHash.containsKey(playerName)) {
             if (hasPermission(player, "disband")) {
-                Kingdom playerKingdom = getPlayerKingdom(player);
+                if (!disbandCooldown.contains(player)) {
+                    disbandCooldown.add(player);
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-start"));
 
-                String kingdomName = playerKingdom.getKingdomName();
-                int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
-                db.getKingdoms().deleteKingdom(kingdomName);
-                if (!db.isMysql()) {
-                    db.getPlayers().truncateTable(kingdomId);
-                    db.getPermissionsRoles().truncateTable(kingdomId);
-                    db.getChunks().truncateTable(kingdomId);
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            if (disbandCooldown.contains(player)) {
+                                disbandCooldown.remove(player);
+                                player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.info.cooldown-expired"));
+                            }
+                        }
+                    }.runTaskLater(plugin, 20 * 10L);
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.cooldown-already-started"));
                 }
-
-                player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.success.disbanded")
-                        .replace("{0}", kingdomName));
-
-                for (Player all : Bukkit.getOnlinePlayers()) {
-                    all.sendMessage(config.getTranslatedString("messages.kingdoms.disband.success.disbanded-broadcast")
-                            .replace("{0}", playerName)
-                            .replace("{1}", kingdomName));
-                }
-
-                config.getPermissions().set("permissions." + kingdomId, null);
-                config.save(config.getPermissions(), config.getPermissionsFile());
             } else {
                 player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.hasnt-permission"));
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.not-have"));
+        }
+    }
+
+    public void disbandPlayerKingdom(Player player) {
+        if (disbandCooldown.contains(player)) {
+            String playerName = player.getName();
+            Kingdom playerKingdom = getPlayerKingdom(player);
+
+            String kingdomName = playerKingdom.getKingdomName();
+            int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
+            db.getKingdoms().deleteKingdom(kingdomName);
+            if (!db.isMysql()) {
+                db.getPlayers().truncateTable(kingdomId);
+                db.getChunks().truncateTable(kingdomId);
+            }
+
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.success.disbanded")
+                    .replace("{0}", kingdomName));
+
+            for (Player all : Bukkit.getOnlinePlayers()) {
+                all.sendMessage(config.getTranslatedString("messages.kingdoms.disband.success.disbanded-broadcast")
+                        .replace("{0}", playerName)
+                        .replace("{1}", kingdomName));
+            }
+
+            config.getPermissions().set("permissions." + kingdomId, null);
+            config.save(config.getPermissions(), config.getPermissionsFile());
+            disbandCooldown.remove(player);
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.disband.error.nothing-to-confirm"));
         }
     }
 
@@ -626,7 +645,14 @@ public class ModUtil {
                 Chunk chunk = new Chunk(plugin, player, player.getLocation());
                 if (!db.getChunks().existChunk(chunk)) {
                     if (claimedChunks < maxClaimableChunks) {
-                        chunk.obtainChunk();
+                        double claimingCost = config.getSettings().getDouble("kingdoms.costs.claiming");
+                        double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
+                        if (kingdomGold >= claimingCost) {
+                            chunk.obtainChunk();
+                        } else {
+                            player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-enough-gold")
+                                    .replace("{0}", Strings.formatNumber(claimingCost, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"))));
+                        }
                     } else {
                         player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
                     }
@@ -674,6 +700,40 @@ public class ModUtil {
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void rankupKingdom(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "manage-ranks")) {
+                int kingdomId = db.getPlayers().getKingdomId(player);
+
+                String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
+                String nextLevel = config.getSettings().getBoolean("kingdoms.levels." + kingdomLevel + ".rankup.allowed") ? config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".rankup.next") : null;
+
+                if (nextLevel != null) {
+                    double kingdomGold = db.getKingdoms().getGoldAmount(kingdomId);
+                    double cost = config.getSettings().getDouble("kingdoms.levels." + kingdomLevel + ".rankup.cost");
+
+                    if (kingdomGold >= cost) {
+                        double newBalance = kingdomGold-cost;
+                        db.getKingdoms().updateLevel(kingdomId, nextLevel);
+                        db.getKingdoms().updateKingdomGold(kingdomId, newBalance);
+
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.success.rankup"));
+                        List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                        onlinePlayers.forEach(onlinePlayer -> {
+                            onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.info.rankup-broadcast"));
+                        });
+                    }
+                } else {
+                    player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.there-are-no-ranks"));
+                }
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.not-in-a-kingdom"));
         }
     }
 
@@ -813,37 +873,6 @@ public class ModUtil {
             itemsList.put(slot, material);
             slot++;
         }
-        /*for (String permName : db.getPermissions().getActualsPermissionsList()) {
-            int permId = db.getPermissions().getPermId(permName);
-            boolean hasPermission = db.getPermissionsRoles().containsRole(kingdomId, roleId, permId);
-            String path = hasPermission ? "guis.kingdom-roles-editing.item-creator.has-permission" : "guis.kingdom-roles-editing.item-creator.hasnt-permission";
-
-            boolean glowing = config.getSettings().getBoolean(path + ".glowing");
-            ItemStack material = new ItemStack(Material.getMaterial(config.getSettings().getString(path + ".material")));
-            ItemMeta meta = material.getItemMeta();
-            String displayName = config.getSettings().getString(path + ".name");
-            if (!displayName.equalsIgnoreCase("null") && !displayName.equals("") && !displayName.equals(null)){
-                displayName = displayName.replace("{0}", Strings.capitalize(permName));
-                meta.setDisplayName(Colors.translateString(displayName));
-            }
-            if (glowing) {
-                meta.addEnchant(Enchantment.LURE, 0, false);
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            }
-            List<String> lore = new ArrayList<>();
-            for (String line : config.getSettings().getStringList(path + ".lore")) {
-                lore.add(Colors.translateString(line
-                        .replace("{0}", Strings.capitalize(roleName))
-                        .replace("{1}", permName)
-                ));
-            }
-            meta.setLore(lore);
-            meta.setCustomModelData(permId);
-            material.setItemMeta(meta);
-
-            itemsList.put(slot, material);
-            slot++;
-        } */
 
         return itemsList;
     }
@@ -923,6 +952,27 @@ public class ModUtil {
             }
         } else {
             leader.sendMessage(config.getTranslatedString("messages.kingdoms.changelead.error.blocked-from-server"));
+        }
+    }
+
+    public void insertPlayerChat(Player player) {
+        if (db.getPlayers().existsPlayerData(player)) {
+            if (hasPermission(player, "use-chat")) {
+                String format = null;
+                if (kingdomsChatPlayerList.contains(player)) {
+                    kingdomsChatPlayerList.remove(player);
+                    format = config.getSettings().getString("messages.kingdoms.chat.other.public-format");
+                } else {
+                    kingdomsChatPlayerList.add(player);
+                    format = config.getSettings().getString("messages.kingdoms.chat.other.kingdom-format");
+                }
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.chat.success.switched")
+                        .replace("{0}", Colors.translateString(format)));
+            } else {
+                player.sendMessage(config.getTranslatedString("messages.kingdoms.chat.error.hasnt-permission"));
+            }
+        } else {
+            player.sendMessage(config.getTranslatedString("messages.kingdoms.chat.error.not-in-a-kingdom"));
         }
     }
 
@@ -1098,5 +1148,17 @@ public class ModUtil {
 
     public List<Player> getReleaseAllCooldown() {
         return releaseAllCooldown;
+    }
+
+    public List<Player> getDisbandCooldown() {
+        return disbandCooldown;
+    }
+
+    public List<Player> getKingdomsChatPlayerList() {
+        return kingdomsChatPlayerList;
+    }
+
+    public List<Player> getKingdomsChatSpiesList() {
+        return kingdomsChatSpiesList;
     }
 }

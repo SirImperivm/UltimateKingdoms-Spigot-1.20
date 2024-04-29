@@ -33,6 +33,7 @@ public final class Main extends JavaPlugin {
         if (getPluginManager().getPlugin("PlaceholderAPI") != null) {
             log.success("&d!! SoftDependency trovata: PlaceholderAPI !!");
             papi = new PapiExpansion(plugin);
+            papi.register();
             log.success("&bPlaceholderAPI collegato correttamente!");
         }
     }

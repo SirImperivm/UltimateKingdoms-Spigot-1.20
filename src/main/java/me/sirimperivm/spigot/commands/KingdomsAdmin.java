@@ -59,6 +59,23 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
                             config.loadAll();
                             s.sendMessage(config.getTranslatedString("messages.admin.plugin.reloaded"));
                         }
+                    } else if (a[0].equalsIgnoreCase("spy-chat")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.spy-chat"))) {
+                            return true;
+                        } else {
+                            if (errors.noConsole(s)) {
+                                return true;
+                            } else {
+                                Player p = (Player) s;
+                                if (!mod.getKingdomsChatSpiesList().contains(p)) {
+                                    mod.getKingdomsChatSpiesList().add(p);
+                                    p.sendMessage(config.getTranslatedString("messages.admin.spy-chat.enabled"));
+                                } else {
+                                    mod.getKingdomsChatSpiesList().remove(p);
+                                    p.sendMessage(config.getTranslatedString("messages.admin.spy-chat.disabled"));
+                                }
+                            }
+                        }
                     } else if (a[0].equalsIgnoreCase("bypass")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.bypass"))) {
                             return true;
@@ -92,6 +109,9 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
             if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.main"))) {
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.reload"))) {
                     toReturn.add("reload");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.spy-chat"))) {
+                    toReturn.add("spy-chat");
                 }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.bypass"))) {
                     toReturn.add("bypass");

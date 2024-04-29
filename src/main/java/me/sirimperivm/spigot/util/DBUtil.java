@@ -32,7 +32,6 @@ public class DBUtil {
     private Roles roles;
     private Players players;
     private Permissions permissions;
-    private PermissionsRoles permissionsRoles;
     private Chunks chunks;
     private Warps warps;
 
@@ -124,7 +123,6 @@ public class DBUtil {
         roles = new Roles(this);
         players = new Players(this);
         permissions = new Permissions(this);
-        permissionsRoles = new PermissionsRoles(this);
         chunks = new Chunks(this);
         warps = new Warps(this);
     }
@@ -151,10 +149,6 @@ public class DBUtil {
 
     public Permissions getPermissions() {
         return permissions;
-    }
-
-    public PermissionsRoles getPermissionsRoles() {
-        return permissionsRoles;
     }
 
     public Chunks getChunks() {

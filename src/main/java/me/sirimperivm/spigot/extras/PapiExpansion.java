@@ -123,7 +123,7 @@ public class PapiExpansion extends PlaceholderExpansion {
         }
 
         if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-name"))) {
-            toReturn = Colors.translateString("&cN/A");
+            toReturn = Colors.translateString("");
             Player online = (Player) player;
             if (db.getPlayers().existsPlayerData(online)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(online);
@@ -139,7 +139,7 @@ public class PapiExpansion extends PlaceholderExpansion {
                 int kingdomRoleId = db.getPlayers().getKingdomRole(online);
                 String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
 
-                toReturn = kingdomRole;
+                toReturn = Strings.capitalize(kingdomRole);
             }
         }
 
@@ -156,7 +156,7 @@ public class PapiExpansion extends PlaceholderExpansion {
         }
 
         if (param.equalsIgnoreCase(config.getSettings().getString(path + "kingdom-tag"))) {
-            toReturn = Colors.translateString("&cN/A");
+            toReturn = Colors.translateString("");
             Player online = (Player) player;
             if (db.getPlayers().existsPlayerData(online)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(online);
