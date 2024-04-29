@@ -607,7 +607,7 @@ public class Event implements Listener {
                 int kingdomId = db.getPlayers().getKingdomId(p);
                 String kingdomName = db.getKingdoms().getKingdomName(kingdomId);
 
-                String kingdomRole = db.getRoles().getRoleName(kingdomId);
+                String kingdomRole = db.getRoles().getRoleName(db.getPlayers().getKingdomRole(p));
                 String kingdomRoleTag = config.getTranslatedString("kingdoms.roles." + kingdomRole + ".chat-tag");
 
                 List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);

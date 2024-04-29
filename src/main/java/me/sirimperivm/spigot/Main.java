@@ -42,6 +42,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         plugin = this;
+        log = new Logger(plugin);
         serverVersion = getBukkitVersion();
         config = new ConfUtil(plugin);
         errors = new Errors(plugin);

@@ -280,7 +280,7 @@ kingdoms:
     claiming: 100.0
   kingdoms-chat:
     default: "&f[&6KC&f] &5{role_tag}{role_name} &f{player} &8» &f{message}"
-    spy: "&f[&6KC-Spy&f] &a{kingdom_name} &5{role_tag}{role_name} &f{player} &8» &f{message}"
+    spy: "&f[&6KC-SPY: &a{kingdom_name}&f] &5{role_tag}{role_name} &f{player} &8» &f{message}"
 
 messages:
   errors:
