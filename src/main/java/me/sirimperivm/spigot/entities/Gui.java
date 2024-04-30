@@ -27,6 +27,7 @@ public class Gui {
     private Logger log;
 
     private ConfUtil config;
+    private Strings strings;
     private DBUtil db;
     private ModUtil mod;
 
@@ -48,6 +49,7 @@ public class Gui {
         log = plugin.getLog();
 
         config = plugin.getCM();
+        strings = plugin.getStrings();
         db = plugin.getDB();
         mod = plugin.getMod();
 
@@ -88,7 +90,7 @@ public class Gui {
         db = plugin.getDB();
         mod = plugin.getMod();
 
-        title = config.getTranslatedString(configDirectory + ".title".replace("{0}", Strings.capitalize(target)));
+        title = config.getTranslatedString(configDirectory + ".title".replace("{0}", strings.capitalize(target)));
         rows = config.getSettings().getInt(configDirectory + ".rows");
         rows = rows < 1 ? 1 : rows;
         rows = rows > 6 ? 6 : rows;

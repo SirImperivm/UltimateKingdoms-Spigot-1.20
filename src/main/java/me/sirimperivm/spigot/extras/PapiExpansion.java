@@ -19,6 +19,7 @@ public class PapiExpansion extends PlaceholderExpansion {
     private Logger log;
 
     private ConfUtil config;
+    private Strings strings;
     private DBUtil db;
     private ModUtil mod;
 
@@ -27,6 +28,7 @@ public class PapiExpansion extends PlaceholderExpansion {
         log = plugin.getLog();
 
         config = plugin.getCM();
+        strings = plugin.getStrings();
         db = plugin.getDB();
         mod = plugin.getMod();
     }
@@ -90,7 +92,7 @@ public class PapiExpansion extends PlaceholderExpansion {
             Player online = (Player) player;
             if (db.getPlayers().existsPlayerData(online)) {
                 Kingdom playerKingdom = mod.getPlayerKingdom(online);
-                String goldAmount = Strings.formatNumber(playerKingdom.getGoldAmount(), config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+                String goldAmount = strings.formatNumber(playerKingdom.getGoldAmount());
 
                 toReturn = goldAmount;
             }
@@ -116,7 +118,7 @@ public class PapiExpansion extends PlaceholderExpansion {
                 Kingdom playerKingdom = mod.getPlayerKingdom(online);
                 String level = db.getKingdoms().getKingdomLevel(playerKingdom.getKingdomName());
                 String nextLevel = config.getSettings().getString("kingdoms.levels." + level + ".rankup.next");
-                String nextLevelCost = Strings.formatNumber(config.getSettings().getDouble("kingdoms.levels" + level + ".rankup.cost"), config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+                String nextLevelCost = strings.formatNumber(config.getSettings().getDouble("kingdoms.levels" + level + ".rankup.cost"));
 
                 toReturn = nextLevelCost;
             }
@@ -139,7 +141,7 @@ public class PapiExpansion extends PlaceholderExpansion {
                 int kingdomRoleId = db.getPlayers().getKingdomRole(online);
                 String kingdomRole = db.getRoles().getRoleName(kingdomRoleId);
 
-                toReturn = Strings.capitalize(kingdomRole);
+                toReturn = strings.capitalize(kingdomRole);
             }
         }
 

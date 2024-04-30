@@ -4,7 +4,6 @@ import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
-import me.sirimperivm.spigot.util.colors.Colors;
 import me.sirimperivm.spigot.util.other.Errors;
 import me.sirimperivm.spigot.util.other.Logger;
 import org.bukkit.command.Command;
@@ -37,10 +36,8 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
         mod = plugin.getMod();
     }
 
-    private void getUsage(CommandSender s) {
-        for (String usage : config.getSettings().getStringList("helps.commands.admin")) {
-            s.sendMessage(Colors.translateString(usage));
-        }
+    private void getUsage(CommandSender s, int page) {
+        mod.createHelp(s, "kingdoms-admin-command", page);
     }
 
     @Override
@@ -49,9 +46,10 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
             if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.main"))) {
                 return true;
             } else {
-                if (a.length != 1) {
-                    getUsage(s);
-                } else {
+                if (a.length == 0) {
+                    getUsage(s, 1);
+                }
+                else if (a.length == 1) {
                     if (a[0].equalsIgnoreCase("reload")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.reload"))) {
                             return true;
@@ -93,9 +91,35 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
                                 }
                             }
                         }
+                    } else if (a[0].equalsIgnoreCase("delete-confirm")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.delete"))) {
+                            return true;
+                        } else {
+                            mod.adminDisbandKingdom(s);
+                        }
                     } else {
-                        getUsage(s);
+                        getUsage(s, 1);
                     }
+                } else if (a.length == 2) {
+                    if (a[0].equalsIgnoreCase("help")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.main"))) {
+                            return true;
+                        } else {
+                            int page = Integer.parseInt(a[1]);
+                            getUsage(s, page);
+                        }
+                    } else if (a[0].equalsIgnoreCase("delete")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.delete"))) {
+                            return true;
+                        } else {
+                            String kingdomName = a[1];
+                            mod.adminPreDisbandKingdom(s, kingdomName);
+                        }
+                    } else {
+                        getUsage(s, 1);
+                    }
+                } else {
+                    getUsage(s, 1);
                 }
             }
         }
@@ -115,6 +139,39 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
                 }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.bypass"))) {
                     toReturn.add("bypass");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.delete"))) {
+                    if (!mod.getAdminDisbandKingdomCooldown().containsKey(s)) {
+                        toReturn.add("delete");
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.delete"))) {
+                    if (mod.getAdminDisbandKingdomCooldown().containsKey(s)) {
+                        toReturn.add("delete-confirm");
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.main"))) {
+                    toReturn.add("help");
+                }
+            }
+            return toReturn;
+        } else if (a.length == 2) {
+            List<String> toReturn = new ArrayList<>();
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.main"))) {
+                if (a[0].equalsIgnoreCase("help")) {
+                    int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
+                    int totalCommand = mod.getTotalLines("kingdoms-admin-command");
+                    int totalPages = (int) Math.floor((double) totalCommand/commandsPerPage);
+                    for (int i = 1; i <= totalPages; i++) {
+                        toReturn.add(String.valueOf(i));
+                    }
+                }
+            }
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.delete"))) {
+                if (a[0].equalsIgnoreCase("delete")) {
+                    for (String kingdomName : db.getKingdoms().kingdomList()) {
+                        toReturn.add(kingdomName);
+                    }
                 }
             }
             return toReturn;

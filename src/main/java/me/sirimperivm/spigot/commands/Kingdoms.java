@@ -3,7 +3,6 @@ package me.sirimperivm.spigot.commands;
 import me.sirimperivm.spigot.Main;
 import me.sirimperivm.spigot.entities.Kingdom;
 import me.sirimperivm.spigot.util.DBUtil;
-import me.sirimperivm.spigot.util.colors.Colors;
 import me.sirimperivm.spigot.util.ConfUtil;
 import me.sirimperivm.spigot.util.ModUtil;
 import me.sirimperivm.spigot.util.other.Errors;
@@ -41,10 +40,8 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
         mod = plugin.getMod();
     }
 
-    private void getUsage(CommandSender s) {
-        for (String usage : config.getSettings().getStringList("helps.commands.kingdoms")) {
-            s.sendMessage(Colors.translateString(usage));
-        }
+    private void getUsage(CommandSender s, int page) {
+        mod.createHelp(s, "kingdoms-command", page);
     }
 
     @Override
@@ -55,7 +52,7 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                 return true;
             } else {
                 if (a.length == 0) {
-                    getUsage(s);
+                    getUsage(s, 1);
                 } else if (a.length == 1) {
                     if (a[0].equalsIgnoreCase("accept")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.accept"))) {
@@ -257,7 +254,7 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             }
                         }
                     } else {
-                        getUsage(s);
+                        getUsage(s, 1);
                     }
                 } else if (a.length == 2) {
                     if (a[0].equalsIgnoreCase("create")) {
@@ -296,6 +293,13 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                                     mod.invitePlayerKingdom(p, t, kingdom);
                                 }
                             }
+                        }
+                    } else if (a[0].equalsIgnoreCase("help")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.main"))) {
+                            return true;
+                        } else {
+                            int page = Integer.parseInt(a[1]);
+                            getUsage(s, page);
                         }
                     } else if (a[0].equalsIgnoreCase("changelead")) {
                         if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.kingdoms.changelead"))) {
@@ -372,7 +376,7 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             mod.sendKingdomInfo(s, kingdomName);
                         }
                     } else {
-                        getUsage(s);
+                        getUsage(s, 0);
                     }
                 } else if (a.length == 3) {
                     if (a[0].equalsIgnoreCase("changerole")) {
@@ -394,10 +398,10 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             }
                         }
                     } else {
-                        getUsage(s);
+                        getUsage(s, 1);
                     }
                 } else {
-                    getUsage(s);
+                    getUsage(s, 1);
                 }
             }
         }
@@ -425,6 +429,9 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             toReturn.add("claim");
                         }
                     }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.main"))) {
+                    toReturn.add("help");
                 }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.claims"))) {
                     if (s instanceof Player) {
@@ -665,6 +672,16 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                             if (a[0].equalsIgnoreCase("create")) {
                                 toReturn.add("<kingdomName>");
                             }
+                        }
+                    }
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.main"))) {
+                    if (a[0].equalsIgnoreCase("help")) {
+                        int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
+                        int totalCommand = mod.getTotalLines("kingdoms-command");
+                        int totalPages = (int) Math.floor((double) totalCommand/commandsPerPage);
+                        for (int i = 1; i <= totalPages; i++) {
+                            toReturn.add(String.valueOf(i));
                         }
                     }
                 }

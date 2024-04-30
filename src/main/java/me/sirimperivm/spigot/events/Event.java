@@ -41,6 +41,7 @@ public class Event implements Listener {
 
     private ConfUtil config;
     private Errors errors;
+    private Strings strings;
     private DBUtil db;
     private ModUtil mod;
 
@@ -50,6 +51,7 @@ public class Event implements Listener {
 
         config = plugin.getCM();
         errors = plugin.getErrors();
+        strings = plugin.getStrings();
         db = plugin.getDB();
         mod = plugin.getMod();
     }
@@ -230,7 +232,7 @@ public class Event implements Listener {
             double updatedValue = kingdomGoldAmount+valueToGive;
             db.getKingdoms().updateKingdomGold(kingdomId, updatedValue);
 
-            String formattedValue = Strings.formatNumber(valueToGive, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+            String formattedValue = strings.formatNumber(valueToGive);
 
             player.sendMessage(config.getTranslatedString("messages.kingdoms.deposit.success.deposited")
                     .replace("{0}", formattedValue));
@@ -614,7 +616,7 @@ public class Event implements Listener {
                 onlinePlayers.forEach(onlinePlayer -> {
                     onlinePlayer.sendMessage(config.getTranslatedString("kingdoms.kingdoms-chat.default")
                             .replace("{role_tag}", Colors.translateString(kingdomRoleTag))
-                            .replace("{role_name}", Colors.translateString(Strings.capitalize(kingdomRole)))
+                            .replace("{role_name}", Colors.translateString(strings.capitalize(kingdomRole)))
                             .replace("{player}", p.getName())
                             .replace("{message}", message));
                 });
@@ -625,7 +627,7 @@ public class Event implements Listener {
                         spy.sendMessage(config.getTranslatedString("kingdoms.kingdoms-chat.spy")
                                 .replace("{kingdom_name}", Colors.translateString(kingdomName))
                                 .replace("{role_tag}", Colors.translateString(kingdomRoleTag))
-                                .replace("{role_name}", Colors.translateString(Strings.capitalize(kingdomRole)))
+                                .replace("{role_name}", Colors.translateString(strings.capitalize(kingdomRole)))
                                 .replace("{player}", p.getName())
                                 .replace("{message}", message));
                     }

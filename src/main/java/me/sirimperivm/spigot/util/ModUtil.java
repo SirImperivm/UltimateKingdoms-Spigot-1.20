@@ -29,6 +29,7 @@ public class ModUtil {
     private Logger log;
 
     private ConfUtil config;
+    private Strings strings;
     private DBUtil db;
 
     private HashMap<String, Kingdom> kingdomHash;
@@ -43,11 +44,14 @@ public class ModUtil {
     private List<Player> kingdomsChatPlayerList;
     private List<Player> kingdomsChatSpiesList;
 
+    private HashMap<CommandSender, String> adminDisbandKingdomCooldown;
+
     public ModUtil(Main plugin) {
         this.plugin = plugin;
         log = plugin.getLog();
 
         config = plugin.getCM();
+        strings = plugin.getStrings();
         db = plugin.getDB();
 
         chunksBordersPlayerList = new ArrayList<>();
@@ -59,6 +63,7 @@ public class ModUtil {
         disbandCooldown = new ArrayList<>();
         kingdomsChatPlayerList = new ArrayList<>();
         kingdomsChatSpiesList = new ArrayList<>();
+        adminDisbandKingdomCooldown = new HashMap<>();
     }
 
     public void setupSettings() {
@@ -88,6 +93,52 @@ public class ModUtil {
                 db.getRoles().insertRole(roleId, key, weight);
             }
         }
+    }
+
+    public void createHelp(CommandSender s, String helpTarget, int page) {
+        int visualizedPage = page;
+        page--;
+
+        List<String> totalLines = config.getSettings().getStringList("help-creator." + helpTarget + ".lines");
+        int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
+        int startIndex = page*commandsPerPage;
+        int totalCommands = totalLines.size();
+        int endIndex = Math.min((page+1) * commandsPerPage, totalCommands);
+
+        if (visualizedPage <=0 || visualizedPage > (int) Math.floor((double) totalCommands/commandsPerPage)+1) {
+            s.sendMessage(config.getTranslatedString("messages.errors.help.page-not-found"));
+            return;
+        }
+
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".header"));
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".title"));
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".spacer"));
+
+        for (int i=startIndex; i<endIndex; i++) {
+            String line = totalLines.get(i);
+            if (line != null) {
+                String[] parts = line.split("-");
+                if (parts.length == 2) {
+                    String commandName = parts[0].trim();
+                    String commandDescription = parts[1].trim();
+                    s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".line-format")
+                            .replace("{command-name}", Colors.translateString(commandName))
+                            .replace("{command-description}", Colors.translateString(commandDescription))
+                    );
+                }
+            }
+        }
+
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".spacer"));
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".page")
+                .replace("{currentpage}", String.valueOf(visualizedPage))
+        );
+        s.sendMessage(config.getTranslatedString("help-creator." + helpTarget + ".footer"));
+    }
+
+    public int getTotalLines(String helpTarget) {
+        List<String> totalLines = config.getSettings().getStringList("help-creator." + helpTarget + ".lines");
+        return totalLines.size();
     }
 
     public void setupPermissions(int kingdomId) {
@@ -152,7 +203,7 @@ public class ModUtil {
                     int kingdomId = db.getKingdoms().getKingdomId(kingdomName);
                     int members = db.getPlayers().getPlayersCount(kingdomId);
                     double goldAmount = db.getKingdoms().getGoldAmount(kingdomId);
-                    String formattedGoldAmount = Strings.formatNumber(goldAmount, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+                    String formattedGoldAmount = strings.formatNumber(goldAmount);
 
                     target.sendMessage(config.getTranslatedString("formats-lists.kingdoms-list.line")
                             .replace("{0}", kingdomName)
@@ -206,7 +257,7 @@ public class ModUtil {
             String kingdomLevel = db.getKingdoms().getKingdomLevel(kingdomId);
             String levelTitle = config.getSettings().getString("kingdoms.levels." + kingdomLevel + ".title");
             double goldAmount = db.getKingdoms().getGoldAmount(kingdomId);
-            String formattedGoldAmount = Strings.formatNumber(goldAmount, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"));
+            String formattedGoldAmount = strings.formatNumber(goldAmount);
 
             target.sendMessage(config.getTranslatedString(messagePath + ".header"));
             target.sendMessage(config.getTranslatedString(messagePath + ".title"));
@@ -224,6 +275,60 @@ public class ModUtil {
             target.sendMessage(config.getTranslatedString(messagePath + ".footer"));
         } else {
             target.sendMessage(config.getTranslatedString("messages.kingdoms.general.error.kingdom-not-exists"));
+        }
+    }
+
+    public void adminPreDisbandKingdom(CommandSender s, String kingdomTarget) {
+        if (db.getKingdoms().existKingdomData(kingdomTarget)) {
+            if (!adminDisbandKingdomCooldown.containsKey(s)) {
+                s.sendMessage(config.getTranslatedString("messages.admin.delete.cooldown-start"));
+                adminDisbandKingdomCooldown.put(s, kingdomTarget);
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (adminDisbandKingdomCooldown.containsKey(s)) {
+                            s.sendMessage(config.getTranslatedString("messages.admin.delete.cooldown-expired"));
+                            adminDisbandKingdomCooldown.remove(s);
+                        }
+                    }
+                }.runTaskLater(plugin, 20L*10L);
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.delete.already-in-cooldown"));
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.delete.not-exists"));
+        }
+    }
+
+    public void adminDisbandKingdom(CommandSender s) {
+        if (adminDisbandKingdomCooldown.containsKey(s)) {
+            String kingdomTarget = adminDisbandKingdomCooldown.get(s);
+            if (db.getKingdoms().existKingdomData(kingdomTarget)) {
+                int kingdomId = db.getKingdoms().getKingdomId(kingdomTarget);
+
+                for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                    onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.delete.broadcast")
+                            .replace("{0}", kingdomTarget)
+                    );
+                }
+
+                db.getKingdoms().deleteKingdom(kingdomTarget);
+                if (!db.isMysql()) {
+                    db.getPlayers().truncateTable(kingdomId);
+                    db.getChunks().truncateTable(kingdomId);
+                }
+
+                s.sendMessage(config.getTranslatedString("messages.admin.delete.destroyed"));
+                config.getPermissions().set("permissions." + kingdomId, null);
+                config.save(config.getPermissions(), config.getPermissionsFile());
+                adminDisbandKingdomCooldown.remove(s);
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.delete.already-destroyed"));
+                adminDisbandKingdomCooldown.remove(s);
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.delete.not-in-cooldown"));
         }
     }
 
@@ -656,7 +761,7 @@ public class ModUtil {
                             db.getKingdoms().updateKingdomGold(kingdomId, newBalance);
                         } else {
                             player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.not-enough-gold")
-                                    .replace("{0}", Strings.formatNumber(claimingCost, config.getSettings().getInt("other.strings.number-formatter.format-size"), config.getSettings().getStringList("other.strings.number-formatter.associations"))));
+                                    .replace("{0}", strings.formatNumber(claimingCost)));
                         }
                     } else {
                         player.sendMessage(config.getTranslatedString("messages.kingdoms.claims.error.max-claims-reached"));
@@ -857,7 +962,7 @@ public class ModUtil {
             ItemMeta meta = material.getItemMeta();
             String displayName = config.getSettings().getString(path + ".name");
             if (!displayName.equalsIgnoreCase("null") && !displayName.equals("") && !displayName.equals(null)){
-                displayName = displayName.replace("{0}", Strings.capitalize(permName));
+                displayName = displayName.replace("{0}", strings.capitalize(permName));
                 meta.setDisplayName(Colors.translateString(displayName));
             }
             if (glowing) {
@@ -867,7 +972,7 @@ public class ModUtil {
             List<String> lore = new ArrayList<>();
             for (String line : config.getSettings().getStringList(path + ".lore")) {
                 lore.add(Colors.translateString(line
-                        .replace("{0}", Strings.capitalize(roleName))
+                        .replace("{0}", strings.capitalize(roleName))
                         .replace("{1}", permName)
                 ));
             }
@@ -1137,6 +1242,10 @@ public class ModUtil {
 
     public Logger getLog() {
         return log;
+    }
+
+    public HashMap<CommandSender, String> getAdminDisbandKingdomCooldown() {
+        return adminDisbandKingdomCooldown;
     }
 
     public HashMap<Player, Integer> getRolesPermissionsEditing() {

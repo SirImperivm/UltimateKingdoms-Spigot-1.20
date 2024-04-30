@@ -288,6 +288,8 @@ messages:
       command: "&8[&c!&8] &cNon hai accesso a questo comando."
       action: "&8[&c!&8] &cNon hai accesso a quest'azione."
     no-console: "&8[&c!&8] &cQuesto comando è solo per utenti in gioco."
+    help:
+      page-not-found: "&8[&c!&8] &cPagina non trovata."
   admin:
     plugin:
       reloaded: "&8[&a!&8] &aPlugin ricaricato con successo."
@@ -297,11 +299,20 @@ messages:
     bypass:
       enabled: "&8[&e!&8] &eSistema bypass territori &aAttivato&e."
       disabled: "&8[&e!&8] &eSistema bypass territori &cDisattivato&e."
+    delete:
+      destroyed: "&8[&a!&8] &aIl regno è stato eliminato con successo."
+      not-exists: "&8[&c!&8] &cIl regno che vuoi eliminare non esiste."
+      cooldown-start: "&8[&e!&8] &eQuest'azione richiede una conferma, eseguila con &6/kga delete-confirm&e."
+      cooldown-expired: "&8[&e!&8] &eTempo scaduto."
+      already-in-cooldown: "&8[&c!&8] &cSei già in una di queste azioni, aspetta il termine."
+      not-in-cooldown: "&8[&c!&8] &cNon hai alcun azione da confermare."
+      already-destroyed: "&8[&c!&8] &cDurante la tua azione il regno è stato già eliminato, ti tolgo dal cooldown."
+      broadcast: "&8[&5!!&8] &dIl regno &5{0} &dè stato distrutto da un amministratore."
   kingdoms:
     general:
       error:
         user-offline: "&8[&c!&8] &cL'utente scelto è offline o non esiste."
-        page-not-found: "&8[&c!&8] &cPagina scelta non trovata."
+        page-not-found: "&8[&c!&8] &cPagina non trovata."
         kingdom-not-exists: "&8[&c!&8] &cIl regno scelto non esiste."
         prevent-theif: "&8[&c!&8] &cNon puoi piazzare blocchi interagibili con containers se non hai il permesso adatto nel regno."
     creation:
@@ -512,36 +523,54 @@ messages:
         hasnt-permission: "&8[&c!&8] &cNon hai accesso alla chat del regno."
         permission-removed: "&8[&c!&8] &cTi è stato rimosso il permesso di usare la chat del regno, ti è stata reimpostata."
 
-helps:
-  commands:
-    kingdoms:
-      - "&3/&bkg accept &7- &3Accetti l'invito in un regno."
-      - "&3/&bkg claim &7- &3Ottieni un chunk 16x16 di territorio per il tuo regno."
-      - "&3/&bkg claims &7- &3Mostra quanti chunk hai claimato."
-      - "&3/&bkg deposit &7- &3Apre la gui per depositare l'oro nel tuo regno."
-      - "&3/&bkg disband &7- &3Elimini il tuo regno."
-      - "&3/&bkg sethome &7- &3Imposti la home del tuo regno."
-      - "&3/&bkg home &7- &3Raggiungi la home del tuo regno."
-      - "&3/&bkg showchunks &7- &3Mostra lo stato dei chunk."
-      - "&3/&bkg rankup &7- &3Fa salire di rank il tuo regno."
-      - "&3/&bkg chat &7- &3Scegli il tipo di chat tra &6Kingdom &3e &fPublic&3."
-      - "&3/&bkg leave &7- &3Esci da un regno."
-      - "&3/&bkg unclaim &7- &3Rilasci un chunk 16x16 di territorio del tuo regno."
-      - "&3/&bkg unclaimall &7- &3Rilasci tutti i territori ottenuti."
-      - "&3/&bkg permissions &7- &3Apre la gui dei permessi nel tuo regno."
-      - "&3/&bkg list &a[pagina] &7- &3Mostra la lista dei regni creati."
-      - "&3/&bkg info &a<nome> &7- &3Mostra le info del regno scelto."
-      - "&3/&bkg create &a<nome> &7- &3Crei un regno."
-      - "&3/&bkg setwarp &a<nomewarp> &7- &3Crei un warp nel tuo regno."
-      - "&3/&bkg warp &a<nomewarp> &7- &3Raggiungi un warp del tuo regno."
-      - "&3/&bkg expel &a<nome> &7- &3Espelli una persona dal tuo regno."
-      - "&3/&bkg invite &a<nome> &7- &3Inviti una persona nel tuo regno."
-      - "&3/&bkg changelead &a<nomeplayer> &7- &3Rilasci il ruolo di Leader ad un altro membro del regno."
-      - "&3/&bkg changerole &a<nomeplayer> <nomeruolo> &7- &3Imposti un ruolo ad un utente del tuo regno."
-    admin:
-      - "&4/&ckga reload &7- &4Ricarica il config del plugin."
-      - "&4/&ckga spy-chat &7- &4Abiliti/Disabiliti la spychat dei regni."
-      - "&4/&ckga bypass &7- &4Bypassi il sistema di territori."
+help-creator:
+  default:
+    max-lines-per-command: 5
+  kingdoms-command:
+    header: "&8------------------------------"
+    title: "&e&lComandi &6&lKingdoms&7:"
+    spacer: "&r"
+    line-format: "{command-name} &7- {command-description}"
+    page: "&9Pagina: &7{currentpage}"
+    footer: "&8------------------------------"
+    lines:
+      - "&3/&bkg accept-&3Accetti l'invito in un regno."
+      - "&3/&bkg claim-&3Ottieni un chunk 16x16 di territorio per il tuo regno."
+      - "&3/&bkg claims-&3Mostra quanti chunk hai claimato."
+      - "&3/&bkg deposit-&3Apre la gui per depositare l'oro nel tuo regno."
+      - "&3/&bkg disband-&3Elimini il tuo regno."
+      - "&3/&bkg sethome-&3Imposti la home del tuo regno."
+      - "&3/&bkg home-&3Raggiungi la home del tuo regno."
+      - "&3/&bkg showchunks-&3Mostra lo stato dei chunk."
+      - "&3/&bkg rankup-&3Fa salire di rank il tuo regno."
+      - "&3/&bkg chat-&3Scegli il tipo di chat tra &6Kingdom &3e &fPublic&3."
+      - "&3/&bkg leave-&3Esci da un regno."
+      - "&3/&bkg unclaim-&3Rilasci un chunk 16x16 di territorio del tuo regno."
+      - "&3/&bkg unclaimall-&3Rilasci tutti i territori ottenuti."
+      - "&3/&bkg permissions-&3Apre la gui dei permessi nel tuo regno."
+      - "&3/&bkg list &a[pagina]-&3Mostra la lista dei regni creati."
+      - "&3/&bkg info &a<nome>-&3Mostra le info del regno scelto."
+      - "&3/&bkg create &a<nome>-&3Crei un regno."
+      - "&3/&bkg setwarp &a<nomewarp>-&3Crei un warp nel tuo regno."
+      - "&3/&bkg warp &a<nomewarp>-&3Raggiungi un warp del tuo regno."
+      - "&3/&bkg expel &a<nome>-&3Espelli una persona dal tuo regno."
+      - "&3/&bkg invite &a<nome>-&3Inviti una persona nel tuo regno."
+      - "&3/&bkg help &a[page]-&3Mostra la lista dei comandi."
+      - "&3/&bkg changelead &a<nomeplayer>-&3Rilasci il ruolo di Leader ad un altro membro del regno."
+      - "&3/&bkg changerole &a<nomeplayer> <nomeruolo>-&3Imposti un ruolo ad un utente del tuo regno."
+  kingdoms-admin-command:
+    header: "&8------------------------------"
+    title: "&c&lComandi Kingdoms &4&lAdmin&7:"
+    spacer: "&r"
+    line-format: "{command-name} &7- {command-description}"
+    page: "&cPagina: &7{currentpage}"
+    footer: "&8------------------------------"
+    lines:
+      - "&4/&ckga reload-&4Ricarica il config del plugin."
+      - "&4/&ckga spy-chat-&4Abiliti/Disabiliti la spychat dei regni."
+      - "&4/&ckga bypass-&4Bypassi il sistema di territori."
+      - "&4/&ckga help &e[page]-&4Mostra la lista dei comandi admin."
+      - "&4/&ckga delete &e<kingdom>-&4Elimina il regno selezionato."
 
 formats-lists:
   kingdoms-list:
@@ -601,5 +630,6 @@ permissions:
       reload: kingdoms.admin
       spy-chat: kingdoms.admin
       bypass: kingdoms.admin
+      delete: kingdoms.admin
   events:
     test-string: kingdoms.testring

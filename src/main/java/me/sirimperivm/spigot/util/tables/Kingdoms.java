@@ -141,6 +141,25 @@ public class Kingdoms {
         }
     }
 
+    public boolean existKingdomData(String kingdomName) {
+        boolean value = false;
+        String query = "SELECT * FROM " + table + " WHERE kingdomName=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, kingdomName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                value = true;
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile trovare il regno " + kingdomName + " nel database.");
+            e.printStackTrace();
+        }
+        return value;
+    }
+
     public String getKingdomName(int kingdomId) {
         String kingdomName = null;
         String query = "SELECT kingdomName FROM " + table + " WHERE kingdom_id=" + kingdomId;

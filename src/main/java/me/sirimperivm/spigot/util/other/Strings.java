@@ -1,71 +1,100 @@
 package me.sirimperivm.spigot.util.other;
 
+import me.sirimperivm.spigot.Main;
+import me.sirimperivm.spigot.util.ConfUtil;
+
+import java.util.HashMap;
 import java.util.List;
 
 @SuppressWarnings("all")
 public class Strings {
 
-    public static String formatNumber(double number, int format_size, List<String> associations) {
-        String toReturn = String.valueOf(number);
-        String value_size = "";
-        StringBuilder sb = new StringBuilder(format_size);
+    private Main plugin;
+    private ConfUtil config;
+    public Strings(Main plugin) {
+        this.plugin = plugin;
+        config = plugin.getCM();
+    }
 
+    public String formatNumber(Object target) {
+        String toReturn = "";
+        int formatSize = config.getSettings().getInt("other.strings.number-formatter.format-size");
+        List<String> associations = config.getSettings().getStringList("other.strings.number-formatter.associations");
+        HashMap<String, String> associatedValues = new HashMap<>();
         for (String association : associations) {
-            String[] splitter = association.split("-");
-            double ass_value = Double.parseDouble(splitter[0]);
-            if (number > ass_value) {
-                toReturn = String.valueOf(number/ass_value);
-                value_size = splitter[1];
+            String[] slice = association.split("-");
+            String numeric = slice[0];
+            String alfabetical = slice[1];
+            associatedValues.put(numeric, alfabetical);
+        }
+
+        if (target instanceof Integer) {
+            int number = (Integer) target;
+            toReturn = String.valueOf(number);
+            HashMap<Integer, String> newAssociatedValues = new HashMap<>();
+            for (String key : associatedValues.keySet()) {
+                String value = associatedValues.get(key);
+                key = key.replace(".0", "");
+                newAssociatedValues.put(Integer.parseInt(key), value);
             }
-        }
+            String valueCurrency = "";
+            StringBuilder sb = new StringBuilder(formatSize);
 
-        if (toReturn.length() >= format_size) {
-            for (int i=0; i<format_size; i++) {
-                sb.append(toReturn.charAt(i));
+            for (Integer key : newAssociatedValues.keySet()) {
+                String alfabetical = newAssociatedValues.get(key);
+                if (number >= key) {
+                    toReturn = String.valueOf(number/key);
+                    valueCurrency = alfabetical;
+                }
             }
 
-            toReturn = sb.toString();
-        }
+            if (toReturn.length() >= formatSize) {
+                for (int i=0; i<formatSize; i++) {
+                    if (toReturn.charAt(i) == '.') break;
+                    sb.append(toReturn.charAt(i));
+                }
+            }
 
-        if (toReturn.contains(".0")) {
-            toReturn = toReturn.replace(".0", "");
-        }
+            if (toReturn.contains(".0")) {
+                toReturn = toReturn.replace(".0", "");
+            }
 
-        toReturn = toReturn+value_size;
+            toReturn = toReturn + valueCurrency;
+        } else if (target instanceof Double) {
+            double number = (Double) target;
+            toReturn = String.valueOf(number);
+            HashMap<Double, String> newAssociatedValues = new HashMap<>();
+            for (String key : associatedValues.keySet()) {
+                String value = associatedValues.get(key);
+                newAssociatedValues.put(Double.parseDouble(key), value);
+            }
+            String valueCurrency = "";
+            StringBuilder sb = new StringBuilder(formatSize);
+
+            for (Double key : newAssociatedValues.keySet()) {
+                String alfabetical = newAssociatedValues.get(key);
+                if (number >= key) {
+                    toReturn = String.valueOf(number/key);
+                    valueCurrency = alfabetical;
+                }
+            }
+
+            if (toReturn.length() >= formatSize) {
+                for (int i=0; i<formatSize; i++) {
+                    sb.append(toReturn.charAt(i));
+                }
+            }
+
+            if (toReturn.contains(".0")) {
+                toReturn = toReturn.replace(".0", "");
+            }
+
+            toReturn = toReturn + valueCurrency;
+        }
         return toReturn;
     }
 
-    public static String formatNumber(int number, int format_size, List<String> associations) {
-        String toReturn = String.valueOf(number);
-        String value_size = "";
-        StringBuilder sb = new StringBuilder(format_size);
-
-        for (String association : associations) {
-            String[] splitter = association.split("-");
-            int ass_value = Integer.parseInt(splitter[0]);
-            if (number > ass_value) {
-                toReturn = String.valueOf(number/ass_value);
-                value_size = splitter[1];
-            }
-        }
-
-        if (toReturn.length() >= format_size) {
-            for (int i=0; i<format_size; i++) {
-                sb.append(toReturn.charAt(i));
-            }
-
-            toReturn = sb.toString();
-        }
-
-        if (toReturn.contains(".0")) {
-            toReturn = toReturn.replace(".0", "");
-        }
-
-        toReturn = toReturn+value_size;
-        return toReturn;
-    }
-
-    public static String capitalize(String target) {
+    public String capitalize(String target) {
         return target.substring(0, 1).toUpperCase()+target.substring(1);
     }
 }
