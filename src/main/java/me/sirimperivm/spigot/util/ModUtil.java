@@ -17,10 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("all")
 public class ModUtil {
@@ -835,6 +832,9 @@ public class ModUtil {
                         onlinePlayers.forEach(onlinePlayer -> {
                             onlinePlayer.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.info.rankup-broadcast"));
                         });
+                    } else {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.not-enough-gold")
+                                .replace("{0}", strings.formatNumber(cost)));
                     }
                 } else {
                     player.sendMessage(config.getTranslatedString("messages.kingdoms.rankup.error.there-are-no-ranks"));
@@ -1116,6 +1116,144 @@ public class ModUtil {
             }
         } else {
             player.sendMessage(config.getTranslatedString("messages.kingdoms.leave.error.not-in-a-kingdom"));
+        }
+    }
+
+    public void adminExpelPlayerKingdom(CommandSender s, String targetName) {
+        UUID targetUUID = db.getPlayers().getPlayerUUID(targetName);
+        if (targetUUID != null) {
+            int kingdomId = db.getPlayers().getKingdomId(targetName);
+            String kingdomRole = db.getRoles().getRoleName(db.getPlayers().getKingdomRole(targetName));
+
+            if (!kingdomRole.equalsIgnoreCase("leader")) {
+                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                onlinePlayers.forEach(onlinePlayer -> {
+                    onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.expel.expelled-broadcast")
+                            .replace("{0}", targetName)
+                    );
+                });
+
+                db.getPlayers().dropPlayer(targetName);
+                s.sendMessage(config.getTranslatedString("messages.admin.expel.expelled"));
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.expel.is-the-leader"));
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.expel.not-exists"));
+        }
+    }
+
+    public void adminSetLead(CommandSender s, String targetName) {
+        UUID targetUUID = db.getPlayers().getPlayerUUID(targetName);
+        if (targetUUID != null) {
+            int kingdomId = db.getPlayers().getKingdomId(targetName);
+            String kingdomRole = db.getRoles().getRoleName(db.getPlayers().getKingdomRole(targetName));
+
+            if (!kingdomRole.equalsIgnoreCase("leader")) {
+                String leaderName = db.getPlayers().getLeaderName(kingdomId);
+                db.getPlayers().updateRole(leaderName, 2);
+                db.getPlayers().updateRole(targetName, 1);
+                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                onlinePlayers.forEach(onlinePlayer -> {
+                    onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.setlead.changed-broadcast")
+                            .replace("{0}", targetName)
+                    );
+                });
+                s.sendMessage(config.getTranslatedString("messages.admin.setlead.changed"));
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.setlead.already-lead"));
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.setlead.not-exists"));
+        }
+    }
+
+    public void adminSetUserRole(CommandSender s, String targetName, String requestedRole) {
+        UUID targetUUID = db.getPlayers().getPlayerUUID(targetName);
+        if (targetUUID != null) {
+            int kingdomId = db.getPlayers().getKingdomId(targetName);
+            String actualRole = db.getRoles().getRoleName(db.getPlayers().getKingdomRole(targetName));
+
+            if (db.getRoles().existsRoleData(requestedRole)) {
+                if (actualRole.equalsIgnoreCase("leader")) {
+                    s.sendMessage(config.getTranslatedString("messages.admin.setrole.is-the-leader"));
+                } else if (requestedRole.equalsIgnoreCase("leader")) {
+                    s.sendMessage(config.getTranslatedString("messages.admin.setrole.role-not-allowed"));
+                } else if (actualRole.equalsIgnoreCase(requestedRole)) {
+                    s.sendMessage(config.getTranslatedString("messages.admin.setrole.has-already-that-role"));
+                } else {
+                    db.getPlayers().updateRole(targetName, db.getRoles().getRoleId(requestedRole));
+                    s.sendMessage(config.getTranslatedString("messages.admin.setrole.changed"));
+                    List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+                    onlinePlayers.forEach(onlinePlayer -> {
+                        onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.setrole.changed-broadcast")
+                                .replace("{0}", targetName)
+                                .replace("{1}", requestedRole)
+                        );
+                    });
+                }
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.setrole.role-not-exists"));
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.setrole.not-exists"));
+        }
+    }
+
+    public void adminSetKingdomGold(CommandSender s, String actionType, String kingdomTarget, String goldAmountString) {
+        if (db.getKingdoms().existKingdomData(kingdomTarget)) {
+            boolean numericAmount = true;
+            for (char ch : goldAmountString.toCharArray()) {
+                if (!((ch >= '.') && (ch <= '9') && (ch != '/'))) {
+                    numericAmount = false;
+                    break;
+                }
+            }
+
+            if (numericAmount) {
+                int kingdomId = db.getKingdoms().getKingdomId(kingdomTarget);
+                double goldAmount = Double.parseDouble(goldAmountString);
+                double actualGoldAmount = db.getKingdoms().getGoldAmount(kingdomTarget);
+                double newBalance;
+
+                List<Player> onlinePlayers = db.getKingdoms().kingdomPlayersList(kingdomId);
+
+                switch (actionType) {
+                    case "add":
+                        newBalance = actualGoldAmount+goldAmount;
+                        onlinePlayers.forEach(onlinePlayer -> {
+                            onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.gold.added-broadcast")
+                                    .replace("{0}", strings.formatNumber(goldAmount))
+                                    .replace("{1}", strings.formatNumber(newBalance))
+                            );
+                        });
+                        break;
+                    case "take":
+                        newBalance = actualGoldAmount-goldAmount;
+                        onlinePlayers.forEach(onlinePlayer -> {
+                            onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.gold.taken-broadcast")
+                                    .replace("{0}", strings.formatNumber(goldAmount))
+                                    .replace("{1}", strings.formatNumber(newBalance))
+                            );
+                        });
+                        break;
+                    default:
+                        newBalance = goldAmount;
+                        onlinePlayers.forEach(onlinePlayer -> {
+                            onlinePlayer.sendMessage(config.getTranslatedString("messages.admin.gold.set-broadcast")
+                                    .replace("{0}", strings.formatNumber(newBalance))
+                            );
+                        });
+                        break;
+                }
+
+                db.getKingdoms().updateKingdomGold(kingdomId, newBalance);
+                s.sendMessage(config.getTranslatedString("messages.admin.gold.changed"));
+            } else {
+                s.sendMessage(config.getTranslatedString("messages.admin.gold.numeric-format-allowed"));
+            }
+        } else {
+            s.sendMessage(config.getTranslatedString("messages.admin.gold.kingdom-not-exists"));
         }
     }
 

@@ -308,6 +308,31 @@ messages:
       not-in-cooldown: "&8[&c!&8] &cNon hai alcun azione da confermare."
       already-destroyed: "&8[&c!&8] &cDurante la tua azione il regno è stato già eliminato, ti tolgo dal cooldown."
       broadcast: "&8[&5!!&8] &dIl regno &5{0} &dè stato distrutto da un amministratore."
+    expel:
+      not-exists: "&8[&c!&8] &cL'utente scelto non ha un regno."
+      is-the-leader: "&8[&c!&8] &cL'utente scelto è il leader del regno, per rimuoverlo devi prima scegliere un nuovo leader con &4/kga setlead <player>&c."
+      expelled: "&8[&a!&8] &aUtente espulso con successo."
+      expelled-broadcast: "&8[&e!&8] &eL'utente &6{0}&e è stato espulso dal tuo regno da un amministratore."
+    setlead:
+      not-exists: "&8[&c!&8] &cL'utente scelto non ha un regno."
+      already-lead: "&8[&c!&8] &cL'utente scelto è già il leader del suo regno."
+      changed: "&8[&a!&8] &aCambio leader effettuato correttamente."
+      changed-broadcast: "&8[&e!&8] &eE' stato cambiato il leader del tuo regno da un amministratore, il nuovo sarà &6{0}&e."
+    setrole:
+      not-exists: "&8[&c!&8] &cL'utente scelto non ha un regno."
+      role-not-exists: "&8[&c!&8] &cIl ruolo scelto non esiste."
+      role-not-allowed: "&8[&c!&8] &cIl ruolo scelto non può essere inserito."
+      is-the-leader: "&8[&c!&8] &cL'utente scelto è il leader del suo regno, non puoi cambiargli il ruolo."
+      has-already-that-role: "&8[&c!&8] &cL'utente scelto ha già quel ruolo."
+      changed: "&8[&a!&8] &aRuolo impostato correttamente."
+      changed-broadcast: "&8[&e!&8] &eUn amministratore ha cambiato il ruolo di &6{0} &ein &6{1}&e nel tuo regno."
+    gold:
+      kingdom-not-exists: "&8[&c!&8] &cIl regno richiesto non esiste."
+      numeric-format-allowed: "&8[&c!&8] &cFormato numerico non valido."
+      changed: "&8[&a!&8] &aQuantità d'oro cambiata correttamente."
+      added-broadcast: "&8[&e!&8] &eUn amministratore ha aggiunto &6{0} &ed'oro al tuo regno. Nuovo bilancio: &6{1}&e."
+      taken-broadcast: "&8[&e!&8] &eUn amministratore ha rimosso &6{0} &ed'oro dal tuo regno. Nuovo bilancio: &6{1}&e."
+      set-broadcast: "&8[&e!&8] &eUn amministratore ha impostato il bilancio del tuo regno a &6{0}&e."
   kingdoms:
     general:
       error:
@@ -331,7 +356,7 @@ messages:
         nothing-to-confirm: "&8[&c!&8] &cNon hai alcun azione da confermare."
       info:
         cooldown-start: "&8[&e!&8] &eQuest'azione necessita di una conferma, esegui con &6/kg disband-confirm&e."
-        cooldown-expired: "&8[&e!&8] &eQuest'azione necessita di una conferma, esegui con &6/kg disband-confirm&e."
+        cooldown-expired: "&8[&e!&8] &eTempo di conferma di un azione scaduto."
       success:
         disbanded: "&8[&a!&8] &aRegno &2{0}&a eliminato!"
         disbanded-broadcast: "&8[&5!!&8] &dL'utente &5{0}&d ha eliminato il regno &5{1}&d."
@@ -444,6 +469,7 @@ messages:
       error:
         not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
         hasnt-permission: "&8[&c!&8] &cNon puoi aprire il pannello dei permessi del tuo regno."
+        cannot-change-this: "&8[&c!&8] &cNel tuo regno non hai questo permesso, perciò non puoi darlo a nessuno."
     warps:
       sethome:
         success:
@@ -510,6 +536,7 @@ messages:
         not-in-a-kingdom: "&8[&c!&8] &cNon hai nessun regno."
         hasnt-permission: "&8[&c!&8] &cNon puoi far rankare il tuo regno."
         there-are-no-ranks: "&8[&c!&8] &cIl tuo regno non può rankare ancora di più."
+        not-enough-gold: "&8[&c!&8] &cIl tuo regno necessita di &4{0}&c d'oro per rankare."
     chat:
       other:
         public-format: "&fPubblica"
@@ -525,7 +552,7 @@ messages:
 
 help-creator:
   default:
-    max-lines-per-command: 5
+    max-lines-per-command: 4
   kingdoms-command:
     header: "&8------------------------------"
     title: "&e&lComandi &6&lKingdoms&7:"
@@ -571,6 +598,12 @@ help-creator:
       - "&4/&ckga bypass-&4Bypassi il sistema di territori."
       - "&4/&ckga help &e[page]-&4Mostra la lista dei comandi admin."
       - "&4/&ckga delete &e<kingdom>-&4Elimina il regno selezionato."
+      - "&4/&ckga expel &e<player>-&4Espelli un player da un regno."
+      - "&4/&ckga setlead &e<player>-&4Imposti un utente come leader del suo regno."
+      - "&4/&ckga setrole &e<player> <role>-&4Imposti un ruolo ad un utente nel suo regno."
+      - "&4/&ckga gold add &e<kingdomname> <goldamount>-&4Aggiungi una quantità di oro nel deposito di un regno."
+      - "&4/&ckga gold take &e<kingdomname> <goldamount>-&4Rimuovi una quantità di oro dal deposito di un regno."
+      - "&4/&ckga gold set &e<kingdomname> <goldamount>-&4Imposti una quantità specifica di oro nel deposito di un regno."
 
 formats-lists:
   kingdoms-list:
@@ -631,5 +664,9 @@ permissions:
       spy-chat: kingdoms.admin
       bypass: kingdoms.admin
       delete: kingdoms.admin
+      expel: kingdoms.admin
+      setlead: kingdoms.admin
+      setrole: kingdoms.admin
+      gold-editing: kingdoms.admin
   events:
     test-string: kingdoms.testring

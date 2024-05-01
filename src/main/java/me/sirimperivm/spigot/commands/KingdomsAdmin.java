@@ -6,6 +6,7 @@ import me.sirimperivm.spigot.util.DBUtil;
 import me.sirimperivm.spigot.util.ModUtil;
 import me.sirimperivm.spigot.util.other.Errors;
 import me.sirimperivm.spigot.util.other.Logger;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,6 +14,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings("all")
@@ -115,6 +117,50 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
                             String kingdomName = a[1];
                             mod.adminPreDisbandKingdom(s, kingdomName);
                         }
+                    } else if (a[0].equalsIgnoreCase("expel")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.expel"))) {
+                            return true;
+                        } else {
+                            String targetName = a[1];
+                            mod.adminExpelPlayerKingdom(s, targetName);
+                        }
+                    } else if (a[0].equalsIgnoreCase("setlead")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.setlead"))) {
+                            return true;
+                        } else {
+                            String targetName = a[1];
+                            mod.adminSetLead(s, targetName);
+                        }
+                    } else {
+                        getUsage(s, 1);
+                    }
+                } else if (a.length == 3) {
+                    if (a[0].equalsIgnoreCase("setrole")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.setrole"))) {
+                            return true;
+                        } else {
+                            String targetName = a[1];
+                            String roleRequested = a[2];
+                            mod.adminSetUserRole(s, targetName, roleRequested);
+                        }
+                    } else {
+                        getUsage(s, 1);
+                    }
+                } else if (a.length == 4) {
+                    if (a[0].equalsIgnoreCase("gold")) {
+                        if (errors.noPermCommand(s, config.getSettings().getString("permissions.commands.admin.gold-editing"))) {
+                            return true;
+                        } else {
+                            String actionType = a[1];
+                            List<String> allowedActions = Arrays.asList("add", "take", "set");
+                            if (allowedActions.contains(actionType)) {
+                                String kingdomName = a[2];
+                                String goldAmountString = a[3];
+                                mod.adminSetKingdomGold(s, actionType, kingdomName, goldAmountString);
+                            } else {
+                                getUsage(s, 1);
+                            }
+                        }
                     } else {
                         getUsage(s, 1);
                     }
@@ -150,25 +196,68 @@ public class KingdomsAdmin implements CommandExecutor, TabCompleter {
                         toReturn.add("delete-confirm");
                     }
                 }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.expel"))) {
+                    toReturn.add("expel");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.setlead"))) {
+                    toReturn.add("setlead");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.setrole"))) {
+                    toReturn.add("setrole");
+                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.main"))) {
                     toReturn.add("help");
+                }
+                if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.gold-editing"))) {
+                    toReturn.add("gold");
                 }
             }
             return toReturn;
         } else if (a.length == 2) {
             List<String> toReturn = new ArrayList<>();
-            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.main"))) {
-                if (a[0].equalsIgnoreCase("help")) {
-                    int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
-                    int totalCommand = mod.getTotalLines("kingdoms-admin-command");
-                    int totalPages = (int) Math.floor((double) totalCommand/commandsPerPage);
-                    for (int i = 1; i <= totalPages; i++) {
-                        toReturn.add(String.valueOf(i));
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.delete"))) {
+                if (a[0].equalsIgnoreCase("delete")) {
+                    for (String kingdomName : db.getKingdoms().kingdomList()) {
+                        toReturn.add(kingdomName);
                     }
                 }
             }
-            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.delete"))) {
-                if (a[0].equalsIgnoreCase("delete")) {
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.expel"))) {
+                if (a[0].equalsIgnoreCase("expel")) {
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        String playerName = onlinePlayer.getName();
+                        toReturn.add(playerName);
+                    }
+                }
+            }
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.setlead"))) {
+                if (a[0].equalsIgnoreCase("setlead")) {
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        String playerName = onlinePlayer.getName();
+                        toReturn.add(playerName);
+                    }
+                }
+            }
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.setrole"))) {
+                if (a[0].equalsIgnoreCase("setrole")) {
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        String playerName = onlinePlayer.getName();
+                        toReturn.add(playerName);
+                    }
+                }
+            }
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.gold-editing"))) {
+                if (a[0].equalsIgnoreCase("gold")) {
+                    toReturn.add("add");
+                    toReturn.add("take");
+                    toReturn.add("set");
+                }
+            }
+            return toReturn;
+        } else if (a.length == 3) {
+            List<String> toReturn = new ArrayList<>();
+            if (s.hasPermission(config.getSettings().getString("permissions.commands.admin.gold-editing"))) {
+                if (a[0].equalsIgnoreCase("gold")) {
                     for (String kingdomName : db.getKingdoms().kingdomList()) {
                         toReturn.add(kingdomName);
                     }

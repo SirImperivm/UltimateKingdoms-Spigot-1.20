@@ -675,16 +675,6 @@ public class Kingdoms implements CommandExecutor, TabCompleter {
                         }
                     }
                 }
-                if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.main"))) {
-                    if (a[0].equalsIgnoreCase("help")) {
-                        int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
-                        int totalCommand = mod.getTotalLines("kingdoms-command");
-                        int totalPages = (int) Math.floor((double) totalCommand/commandsPerPage);
-                        for (int i = 1; i <= totalPages; i++) {
-                            toReturn.add(String.valueOf(i));
-                        }
-                    }
-                }
                 if (s.hasPermission(config.getSettings().getString("permissions.commands.kingdoms.expel"))) {
                     if (s instanceof Player) {
                         Player player = (Player) s;

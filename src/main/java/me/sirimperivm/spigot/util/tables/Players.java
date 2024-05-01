@@ -5,6 +5,7 @@ import me.sirimperivm.spigot.util.other.Logger;
 import org.bukkit.entity.Player;
 
 import java.sql.*;
+import java.util.UUID;
 
 @SuppressWarnings("all")
 public class Players {
@@ -83,7 +84,7 @@ public class Players {
 
     public void insertPlayer(Player player, int kingdomId, int kingdomRole) {
         String playerName = player.getName();
-        String playerUuid = player.getUniqueId().toString().replace("-", "");
+        String playerUuid = player.getUniqueId().toString();
 
         String query = "INSERT INTO " + table + "(`player_name`, `player_uuid`, kingdom_id, kingdom_role) VALUES (?, ?, ?, ?)";
 
@@ -115,10 +116,36 @@ public class Players {
         }
     }
 
+    public void updateRole(String playerName, int kingdomRole) {
+        String query = "UPDATE " + table + " SET kingdom_role=? WHERE player_name=?";
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomRole);
+            state.setString(2, playerName);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile aggiornare il ruolo dell'utente " + playerName + " su " + kingdomRole + "!");
+            e.printStackTrace();
+        }
+    }
+
     public void dropPlayer(Player player) {
         String playerName = player.getName();
-        String playerUuid = player.getUniqueId().toString().replace("-", "");
+        String playerUuid = player.getUniqueId().toString();
 
+        String query = "DELETE FROM " + table + " WHERE player_name='" + playerName + "' OR player_uuid='" + playerUuid + "'";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.executeUpdate();
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile rimuovere dati riguardanti l'utente " + playerName + "!");
+            e.printStackTrace();
+        }
+    }
+
+    public void dropPlayer(String playerName) {
+        String playerUuid = getPlayerUUID(playerName).toString();
         String query = "DELETE FROM " + table + " WHERE player_name='" + playerName + "' OR player_uuid='" + playerUuid + "'";
 
         try {
@@ -199,6 +226,24 @@ public class Players {
         return kid;
     }
 
+    public int getKingdomId(String playerName) {
+        int kid = 0;
+        String query = "SELECT kingdom_id FROM " + tableName + " WHERE player_name='" + playerName + "'";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                kid = rs.getInt("kingdom_id");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere l'id del regno dell'utente " + playerName + "!");
+            e.printStackTrace();
+        }
+        return kid;
+    }
+
     public int getPlayersCount(int kingdomId) {
         int count = 0;
         String query = "SELECT COUNT(*) AS conto FROM " + table + " WHERE kingdom_id=?";
@@ -221,7 +266,7 @@ public class Players {
     public boolean existsPlayerData(Player player) {
         boolean value = false;
         String playerName = player.getName();
-        String playerUuid = player.getUniqueId().toString().replace("-", "");
+        String playerUuid = player.getUniqueId().toString();
 
         String query = "SELECT * FROM " + table + " WHERE player_name='" + playerName + "' OR player_uuid='" + playerUuid + "'";
 
@@ -237,5 +282,47 @@ public class Players {
             e.printStackTrace();
         }
         return value;
+    }
+
+    public String getLeaderName(int kingdomId) {
+        String leader = null;
+        String query = isMysql ? "SELECT player_name FROM {dbname}players, {dbname}kingdoms, {dbname}roles WHERE {dbname}players.kingdom_id={dbname}kingdoms.kingdom_id AND {dbname}players.kingdom_role={dbname}roles.kingdom_role AND {dbname}players.kingdom_id=? AND {dbname}roles.role_name=?"
+                .replace("{dbname}", dbName)
+                :
+                "SELECT player_name FROM players, kingdoms, roles WHERE players.kingdom_id=kingdoms.kingdom_id AND players.kingdom_role=roles.kingdom_role AND players.kingdom_id=? AND roles.role_name=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setInt(1, kingdomId);
+            state.setString(2, "leader");
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                leader = rs.getString("player_name");
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere il leader del regno " + db.getKingdoms().getKingdomName(kingdomId) + "!");
+            e.printStackTrace();
+        }
+        return leader;
+    }
+
+    public UUID getPlayerUUID(String playerName) {
+        UUID playerUUID = null;
+        String query = "SELECT player_uuid FROM " + table + " WHERE player_name=?";
+
+        try {
+            PreparedStatement state = conn.prepareStatement(query);
+            state.setString(1, playerName);
+            ResultSet rs = state.executeQuery();
+            while (rs.next()) {
+                playerUUID = UUID.fromString(rs.getString("player_uuid"));
+                break;
+            }
+        } catch (SQLException e) {
+            log.fail("[UltimateKingdoms] Impossibile ottenere l'uuid del player " + playerUUID + "!");
+            e.printStackTrace();
+        }
+        return playerUUID;
     }
 }

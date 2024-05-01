@@ -131,18 +131,24 @@ public class Event implements Listener {
                 String roleName = db.getRoles().getRoleName(roleId);
 
                 if (clickedPermId > 0) {
+                    boolean changed = false;
                     for (String permName : config.getPermissions().getConfigurationSection("permissions." + kingdomId + ".roles." + roleName + ".permissions").getKeys(false)) {
                         int permId = db.getPermissions().getPermId(permName);
                         if (permId == clickedPermId) {
                             boolean value = config.getPermissions().getBoolean("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName);
 
-                            if (value) {
-                                config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, false);
+                            if (mod.hasPermission(player, permName)) {
+                                if (value) {
+                                    config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, false);
+                                } else {
+                                    config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, true);
+                                }
+                                config.save(config.getPermissions(), config.getPermissionsFile());
+                                changed = true;
                             } else {
-                                config.getPermissions().set("permissions." + kingdomId + ".roles." + roleName + ".permissions." + permName, true);
+                                player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.error.cannot-change-this"));
                             }
 
-                            config.save(config.getPermissions(), config.getPermissionsFile());
                             break;
                         }
                     }
@@ -175,7 +181,9 @@ public class Event implements Listener {
                     gui.setRows(rows);
                     gui.sendGui(player, itemsList);
 
-                    player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.info.permission-updated"));
+                    if (changed) {
+                        player.sendMessage(config.getTranslatedString("messages.kingdoms.permissions-gui.info.permission-updated"));
+                    }
                 }
             }
 

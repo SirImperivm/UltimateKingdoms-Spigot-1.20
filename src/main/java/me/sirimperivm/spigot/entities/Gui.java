@@ -68,6 +68,7 @@ public class Gui {
         log = plugin.getLog();
 
         config = plugin.getCM();
+        strings = plugin.getStrings();
         db = plugin.getDB();
         mod = plugin.getMod();
 
@@ -87,6 +88,7 @@ public class Gui {
         log = plugin.getLog();
 
         config = plugin.getCM();
+        strings = plugin.getStrings();
         db = plugin.getDB();
         mod = plugin.getMod();
 
