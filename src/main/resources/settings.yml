@@ -551,8 +551,6 @@ messages:
         permission-removed: "&8[&c!&8] &cTi è stato rimosso il permesso di usare la chat del regno, ti è stata reimpostata."
 
 help-creator:
-  default:
-    max-lines-per-command: 4
   kingdoms-command:
     header: "&8------------------------------"
     title: "&e&lComandi &6&lKingdoms&7:"
@@ -585,6 +583,7 @@ help-creator:
       - "&3/&bkg help &a[page]-&3Mostra la lista dei comandi."
       - "&3/&bkg changelead &a<nomeplayer>-&3Rilasci il ruolo di Leader ad un altro membro del regno."
       - "&3/&bkg changerole &a<nomeplayer> <nomeruolo>-&3Imposti un ruolo ad un utente del tuo regno."
+    max-lines-per-command: 5
   kingdoms-admin-command:
     header: "&8------------------------------"
     title: "&c&lComandi Kingdoms &4&lAdmin&7:"
@@ -604,6 +603,7 @@ help-creator:
       - "&4/&ckga gold add &e<kingdomname> <goldamount>-&4Aggiungi una quantità di oro nel deposito di un regno."
       - "&4/&ckga gold take &e<kingdomname> <goldamount>-&4Rimuovi una quantità di oro dal deposito di un regno."
       - "&4/&ckga gold set &e<kingdomname> <goldamount>-&4Imposti una quantità specifica di oro nel deposito di un regno."
+    max-lines-per-command: 4
 
 formats-lists:
   kingdoms-list:

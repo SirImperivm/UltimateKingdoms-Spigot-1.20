@@ -97,7 +97,7 @@ public class ModUtil {
         page--;
 
         List<String> totalLines = config.getSettings().getStringList("help-creator." + helpTarget + ".lines");
-        int commandsPerPage = config.getSettings().getInt("help-creator.default.max-lines-per-command");
+        int commandsPerPage = config.getSettings().getInt("help-creator." + helpTarget + ".max-lines-per-command");
         int startIndex = page*commandsPerPage;
         int totalCommands = totalLines.size();
         int endIndex = Math.min((page+1) * commandsPerPage, totalCommands);
